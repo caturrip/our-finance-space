@@ -22,7 +22,7 @@ export default function Navbar({ isDark, toggleDark, source }) {
       className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl"
     >
       <div className="glass-strong rounded-2xl px-4 sm:px-6 py-3 flex items-center">
-        {/* Logo — kiri, flex-none */}
+        {/* Logo — kiri */}
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="flex items-center gap-3 group flex-none"
@@ -48,7 +48,7 @@ export default function Navbar({ isDark, toggleDark, source }) {
         </button>
 
         {/* Nav links — flex-1 mengisi ruang, justify-center agar tepat tengah */}
-        <nav className="hidden md:flex flex-1 items-center justify-center gap-1">
+        <nav className="hidden md:flex items-center gap-1 ml-8">
           {navLinks.map(({ label, href }) => (
             <button
               key={href}
@@ -60,8 +60,8 @@ export default function Navbar({ isDark, toggleDark, source }) {
           ))}
         </nav>
 
-        {/* Right actions — flex-none */}
-        <div className="flex items-center gap-2 flex-none ml-auto md:ml-0">
+        {/* Right actions — kanan */}
+        <div className="flex items-center gap-2 justify-self-end">
           {/* Connection indicator */}
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/[0.08] dark:border-white/10">
             {source === 'live' ? (
