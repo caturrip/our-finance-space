@@ -25,7 +25,7 @@ function CustomTooltip({ active, payload, isDark }) {
   )
 }
 
-function CategoryPieChart({ data, isDark }) {
+function CategoryPieChart({ data, isDark, activeMonth, activeYear }) {
   const [activeIdx, setActiveIdx] = useState(null)
   const total = data.reduce((sum, d) => sum + d.value, 0)
 
@@ -40,7 +40,7 @@ function CategoryPieChart({ data, isDark }) {
       <div className="flex items-start justify-between mb-6">
         <div>
           <p className="text-xs uppercase tracking-[0.25em] text-finance-700/70 dark:text-finance-300/70 mb-1 number-mono">
-            April 2026
+            {activeMonth ?? 'Bulan Ini'} {activeYear ?? ''}
           </p>
           <h3 className="display-serif text-2xl font-medium text-finance-950 dark:text-finance-50">
             Expense by Category
@@ -255,10 +255,15 @@ function CashflowChart({ data, isDark }) {
   )
 }
 
-export default function Charts({ categoryData, cashflowData, isDark }) {
+export default function Charts({ categoryData, cashflowData, isDark, summary }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
-      <CategoryPieChart data={categoryData} isDark={isDark} />
+      <CategoryPieChart
+        data={categoryData}
+        isDark={isDark}
+        activeMonth={summary?.activeMonth}
+        activeYear={summary?.activeYear}
+      />
       <CashflowChart data={cashflowData} isDark={isDark} />
     </div>
   )

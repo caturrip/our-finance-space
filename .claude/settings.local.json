@@ -12,7 +12,14 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git config *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(ls -la .env*)",
+      "Bash(cat .env)",
+      "Bash(cat .env.local)",
+      "Bash(curl -s -H \"Authorization: Bearer catur-mita-finance-2026\" \"https://wa-finance-bot-production.up.railway.app/api/summary\")",
+      "Bash(curl -s -H \"Authorization: Bearer catur-mita-finance-2026\" \"https://wa-finance-bot-production.up.railway.app/api/transactions?limit=5\")",
+      "Bash(curl -s -H 'Authorization: Bearer catur-mita-finance-2026' https://wa-finance-bot-production.up.railway.app/api/__TRACKED_VAR__)",
+      "Bash(curl *)"
     ]
   }
 }

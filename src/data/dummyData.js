@@ -1,7 +1,7 @@
 // ============================================
 // DATA — diselaraskan dengan Financial Planner spreadsheet
 // (Financial Planner Mita & Catur | Small Step Daily)
-// Update terakhir: April 2026
+// Update terakhir: Mei 2026 (data Railway 1-5 Mei)
 // ============================================
 
 export const couple = {
@@ -10,15 +10,18 @@ export const couple = {
   startedTracking: '2025-08-15',
 }
 
-// Summary bulan April 2026 — dari data spreadsheet
+// Summary bulan Mei 2026 — income diupdate manual saat gaji berubah
+// Expense & transactionCount dihitung otomatis dari Railway (useFinanceData.js)
 export const summary = {
-  totalBalance: 8_750_000,         // Estimasi saldo gabungan semua rekening
-  monthlyIncome: 14_093_000,        // Gaji Catur 8jt + Gaji Vermita 6.09jt
-  monthlyExpense: 17_812_343,       // Total pengeluaran April 2026 (spreadsheet)
-  transactionCount: 108,            // 106 pengeluaran + 2 pemasukan April 2026
-  savingProgress: 0.00,             // Belum ada tabungan teralokasi
+  totalBalance: 8_000_000,          // Estimasi saldo gabungan
+  monthlyIncome: 14_500_000,         // Gaji Catur 8jt + Gaji Vermita 6.5jt (update Mei 2026)
+  monthlyExpense: 9_917_159,         // Placeholder — diganti live dari Railway
+  transactionCount: 25,              // Placeholder — diganti live dari Railway
+  savingProgress: 0.00,
   monthlySavingTarget: 2_000_000,
   monthlySavingActual: 0,
+  activeMonth: 'Mei',
+  activeYear: 2026,
 }
 
 // Goals — diselaraskan dengan kategori spreadsheet: Anak, Rumah, Darurat
@@ -56,28 +59,22 @@ export const goals = [
   },
 ]
 
-// Pengeluaran per kategori — sesuai kategori spreadsheet April 2026 (verified)
+// Pengeluaran per kategori — data Railway Mei 2026 (1-4 Mei, bulan berjalan)
 export const expenseByCategory = [
-  { name: 'Makanan & Minuman', value: 11_962_746, color: '#10b981', icon: '🍜' },
-  { name: 'Cicilan',           value: 3_004_500,  color: '#f97316', icon: '💳' },
-  { name: 'Entertaint',        value: 1_030_000,  color: '#fbbf24', icon: '🎭' },
-  { name: 'Listrik/Air',       value: 694_097,    color: '#60a5fa', icon: '💡' },
-  { name: 'Sedekah',           value: 500_000,    color: '#a78bfa', icon: '🤲' },
-  { name: 'Lainnya',           value: 302_500,    color: '#f08672', icon: '📦' },
-  { name: 'Transportasi',      value: 159_000,    color: '#34d399', icon: '🚗' },
-  { name: 'Skin Care',         value: 61_500,     color: '#f9a8d4', icon: '✨' },
-  { name: 'Orang Tua',         value: 50_000,     color: '#fdba74', icon: '👴' },
-  { name: 'Laundry',           value: 48_000,     color: '#93c5fd', icon: '👕' },
+  { name: 'Makanan & Minuman', value: 7_226_881, color: '#10b981', icon: '🍜' },
+  { name: 'Kontrakan',         value: 2_200_000, color: '#f97316', icon: '🏠' },
+  { name: 'Listrik/Air',       value: 345_278,   color: '#60a5fa', icon: '💡' },
+  { name: 'Lainnya',           value: 100_000,   color: '#f08672', icon: '📦' },
 ]
-// Total = 17,812,343 sesuai spreadsheet April 2026
+// Total = 9,917,159 (data Railway 1-5 Mei, bulan masih berjalan)
 
-// Cashflow bulanan 2026 — data nyata dari spreadsheet
+// Cashflow bulanan 2026 — data nyata dari spreadsheet + Railway
 export const monthlyCashflow = [
   { month: 'Jan', income: 0,          expense: 0 },
-  { month: 'Feb', income: 8_000_000,  expense: 8_068_689 },
-  { month: 'Mar', income: 18_805_050, expense: 28_284_066 },
-  { month: 'Apr', income: 14_093_000, expense: 17_812_343 },
-  { month: 'May', income: 0,          expense: 0 },
+  { month: 'Feb', income: 8_068_689,  expense: 8_068_689  },
+  { month: 'Mar', income: 28_284_066, expense: 28_284_066 },
+  { month: 'Apr', income: 17_812_343, expense: 17_812_343 },
+  { month: 'May', income: 14_500_000, expense: 9_917_159 },  // Gaji baru Mei 2026
   { month: 'Jun', income: 0,          expense: 0 },
   { month: 'Jul', income: 0,          expense: 0 },
   { month: 'Aug', income: 0,          expense: 0 },
@@ -87,110 +84,55 @@ export const monthlyCashflow = [
   { month: 'Dec', income: 0,          expense: 0 },
 ]
 
-// Transaksi April 2026 — data nyata dari spreadsheet (urut terbaru)
+// Transaksi Mei 2026 — data aktual Railway (urut terbaru)
 export const recentTransactions = [
-  // === APRIL 26 ===
-  { id: 't1',  date: '2026-04-26', person: 'Vermita', category: 'Makanan & Minuman', description: 'Family Mart',          amount: 32_000,     type: 'expense' },
-  { id: 't2',  date: '2026-04-26', person: 'Vermita', category: 'Makanan & Minuman', description: 'Beras & Galon',        amount: 103_000,    type: 'expense' },
-  { id: 't3',  date: '2026-04-26', person: 'Vermita', category: 'Makanan & Minuman', description: 'Kuota Mama',           amount: 36_000,     type: 'expense' },
-  // === APRIL 25 ===
-  { id: 't4',  date: '2026-04-25', person: 'Vermita', category: 'Makanan & Minuman', description: 'Wing Stop',            amount: 77_000,     type: 'expense' },
-  { id: 't5',  date: '2026-04-25', person: 'Vermita', category: 'Makanan & Minuman', description: 'EM Gelato',            amount: 38_000,     type: 'expense' },
-  { id: 't6',  date: '2026-04-25', person: 'Catur',   category: 'Transportasi',      description: 'Grab ke Kantor',       amount: 28_000,     type: 'expense' },
-  // === APRIL 24 ===
-  { id: 't7',  date: '2026-04-24', person: 'Vermita', category: 'Makanan & Minuman', description: 'Soto Mafia',           amount: 31_500,     type: 'expense' },
-  { id: 't8',  date: '2026-04-24', person: 'Catur',   category: 'Entertaint',        description: 'Netflix',              amount: 149_000,    type: 'expense' },
-  // === APRIL 23 ===
-  { id: 't9',  date: '2026-04-23', person: 'Catur',   category: 'Transportasi',      description: 'Bensin',               amount: 35_000,     type: 'expense' },
-  { id: 't10', date: '2026-04-23', person: 'Vermita', category: 'Makanan & Minuman', description: 'Indomaret',            amount: 45_000,     type: 'expense' },
-  // === APRIL 22 ===
-  { id: 't11', date: '2026-04-22', person: 'Vermita', category: 'Makanan & Minuman', description: 'Mie Ayam',             amount: 49_000,     type: 'expense' },
-  { id: 't12', date: '2026-04-22', person: 'Catur',   category: 'Sedekah',           description: 'Sedekah Jumat',        amount: 50_000,     type: 'expense' },
-  // === APRIL 21 ===
-  { id: 't13', date: '2026-04-21', person: 'Vermita', category: 'Skin Care',          description: 'Skincare Produk',      amount: 40_000,     type: 'expense' },
-  { id: 't14', date: '2026-04-21', person: 'Catur',   category: 'Entertaint',        description: 'Spotify',              amount: 45_000,     type: 'expense' },
-  // === APRIL 20 ===
-  { id: 't15', date: '2026-04-20', person: 'Vermita', category: 'Makanan & Minuman', description: 'Kuretase',             amount: 5_000_000,  type: 'expense' },
-  { id: 't16', date: '2026-04-20', person: 'Catur',   category: 'Transportasi',      description: 'Parkir RS',            amount: 10_000,     type: 'expense' },
-  // === APRIL 19 ===
-  { id: 't17', date: '2026-04-19', person: 'Catur',   category: 'Sedekah',           description: 'Infaq Masjid',         amount: 100_000,    type: 'expense' },
-  { id: 't18', date: '2026-04-19', person: 'Vermita', category: 'Makanan & Minuman', description: 'Warteg',               amount: 22_000,     type: 'expense' },
-  // === APRIL 18 ===
-  { id: 't19', date: '2026-04-18', person: 'Vermita', category: 'Makanan & Minuman', description: 'USG Dedek',            amount: 895_000,    type: 'expense' },
-  { id: 't20', date: '2026-04-18', person: 'Catur',   category: 'Transportasi',      description: 'Grab ke RS',           amount: 22_000,     type: 'expense' },
-  // === APRIL 17 ===
-  { id: 't21', date: '2026-04-17', person: 'Vermita', category: 'Makanan & Minuman', description: 'USG Dedek',            amount: 707_000,    type: 'expense' },
-  { id: 't22', date: '2026-04-17', person: 'Catur',   category: 'Entertaint',        description: 'Bioskop',              amount: 150_000,    type: 'expense' },
-  // === APRIL 16 ===
-  { id: 't23', date: '2026-04-16', person: 'Vermita', category: 'Makanan & Minuman', description: 'Belanja Sayur',        amount: 55_000,     type: 'expense' },
-  { id: 't24', date: '2026-04-16', person: 'Catur',   category: 'Lainnya',           description: 'Obat-obatan',          amount: 185_000,    type: 'expense' },
-  // === APRIL 15 ===
-  { id: 't25', date: '2026-04-15', person: 'Vermita', category: 'Laundry',           description: 'Laundry Kiloan',       amount: 48_000,     type: 'expense' },
-  { id: 't26', date: '2026-04-15', person: 'Catur',   category: 'Transportasi',      description: 'Bensin',               amount: 30_000,     type: 'expense' },
-  // === APRIL 14 ===
-  { id: 't27', date: '2026-04-14', person: 'Vermita', category: 'Makanan & Minuman', description: 'Alfamart',             amount: 68_000,     type: 'expense' },
-  { id: 't28', date: '2026-04-14', person: 'Catur',   category: 'Entertaint',        description: 'Buku',                 amount: 85_000,     type: 'expense' },
-  // === APRIL 13 ===
-  { id: 't29', date: '2026-04-13', person: 'Catur',   category: 'Sedekah',           description: 'Sedekah Keluarga',     amount: 250_000,    type: 'expense' },
-  { id: 't30', date: '2026-04-13', person: 'Vermita', category: 'Skin Care',          description: 'Facial Wash',          amount: 21_500,     type: 'expense' },
-  // === APRIL 12 ===
-  { id: 't31', date: '2026-04-12', person: 'Vermita', category: 'Makanan & Minuman', description: 'Resto Padang',         amount: 65_000,     type: 'expense' },
-  { id: 't32', date: '2026-04-12', person: 'Catur',   category: 'Transportasi',      description: 'Grab',                 amount: 18_000,     type: 'expense' },
-  // === APRIL 11 ===
-  { id: 't33', date: '2026-04-11', person: 'Vermita', category: 'Makanan & Minuman', description: 'Bakso',                amount: 28_000,     type: 'expense' },
-  { id: 't34', date: '2026-04-11', person: 'Catur',   category: 'Entertaint',        description: 'Nongkrong Kafe',       amount: 120_000,    type: 'expense' },
-  // === APRIL 10 ===
-  { id: 't35', date: '2026-04-10', person: 'Catur',   category: 'Listrik/Air',       description: 'Listrik PLN',          amount: 350_000,    type: 'expense' },
-  { id: 't36', date: '2026-04-10', person: 'Vermita', category: 'Makanan & Minuman', description: 'Groceries',            amount: 120_000,    type: 'expense' },
-  // === APRIL 9 ===
-  { id: 't37', date: '2026-04-09', person: 'Catur',   category: 'Transportasi',      description: 'Bensin',               amount: 25_000,     type: 'expense' },
-  { id: 't38', date: '2026-04-09', person: 'Vermita', category: 'Makanan & Minuman', description: 'Nasi Goreng',          amount: 30_000,     type: 'expense' },
-  // === APRIL 8 ===
-  { id: 't39', date: '2026-04-08', person: 'Catur',   category: 'Entertaint',        description: 'Jalan-jalan Mall',     amount: 200_000,    type: 'expense' },
-  { id: 't40', date: '2026-04-08', person: 'Vermita', category: 'Makanan & Minuman', description: 'Beli Buah',            amount: 40_000,     type: 'expense' },
-  // === APRIL 7 ===
-  { id: 't41', date: '2026-04-07', person: 'Catur',   category: 'Orang Tua',         description: 'Transfer Orang Tua',   amount: 50_000,     type: 'expense' },
-  { id: 't42', date: '2026-04-07', person: 'Vermita', category: 'Lainnya',           description: 'Biaya Administrasi',   amount: 15_000,     type: 'expense' },
-  // === APRIL 6 ===
-  { id: 't43', date: '2026-04-06', person: 'Catur',   category: 'Sedekah',           description: 'Sedekah Anak Yatim',   amount: 100_000,    type: 'expense' },
-  { id: 't44', date: '2026-04-06', person: 'Vermita', category: 'Makanan & Minuman', description: 'Makan Siang',          amount: 35_000,     type: 'expense' },
-  // === APRIL 5 ===
-  { id: 't45', date: '2026-04-05', person: 'Catur',   category: 'Listrik/Air',       description: 'Air PDAM',             amount: 80_000,     type: 'expense' },
-  { id: 't46', date: '2026-04-05', person: 'Vermita', category: 'Entertaint',        description: 'Tiket Konser',         amount: 281_000,    type: 'expense' },
-  // === APRIL 4 ===
-  { id: 't47', date: '2026-04-04', person: 'Catur',   category: 'Cicilan',           description: 'Cicilan HP',           amount: 1_004_500,  type: 'expense' },
-  { id: 't48', date: '2026-04-04', person: 'Vermita', category: 'Makanan & Minuman', description: 'Makan Soto',           amount: 30_000,     type: 'expense' },
-  // === APRIL 3 ===
-  { id: 't49', date: '2026-04-03', person: 'Catur',   category: 'Listrik/Air',       description: 'WiFi Indihome',        amount: 264_097,    type: 'expense' },
-  { id: 't50', date: '2026-04-03', person: 'Vermita', category: 'Makanan & Minuman', description: 'Snack & Jajan',        amount: 25_000,     type: 'expense' },
-  // === APRIL 2 ===
-  { id: 't51', date: '2026-04-02', person: 'Catur',   category: 'Cicilan',           description: 'Cicilan Tokped',       amount: 1_200_000,  type: 'expense' },
-  { id: 't52', date: '2026-04-02', person: 'Catur',   category: 'Cicilan',           description: 'Cicilan Pinjaman',     amount: 800_000,    type: 'expense' },
-  { id: 't53', date: '2026-04-02', person: 'Vermita', category: 'Lainnya',           description: 'Kebutuhan Rumah',      amount: 102_500,    type: 'expense' },
-  // === APRIL 1 ===
-  { id: 't54', date: '2026-04-01', person: 'Catur',   category: 'Salary',            description: 'Gaji Catur April',     amount: 8_000_000,  type: 'income'  },
-  { id: 't55', date: '2026-04-01', person: 'Vermita', category: 'Salary',            description: 'Gaji Vermita April',   amount: 6_093_000,  type: 'income'  },
+  // === MEI 5 ===
+  { id: 'm0a', date: '2026-05-05', person: 'Vermita', category: 'Makanan & Minuman', description: 'Tahu Gejrot',    amount: 10_000, type: 'expense' },
+  { id: 'm0b', date: '2026-05-05', person: 'Catur',   category: 'Transportasi',      description: 'Isi Bensin',     amount: 35_000, type: 'expense' },
+  // === MEI 4 ===
+  { id: 'm1',  date: '2026-05-04', person: 'Vermita', category: 'Makanan & Minuman', description: 'Beli Obeng, Palu, Paku',    amount: 57_981,    type: 'expense' },
+  { id: 'm2',  date: '2026-05-04', person: 'Vermita', category: 'Makanan & Minuman', description: 'Double Tape',               amount: 20_200,    type: 'expense' },
+  { id: 'm3',  date: '2026-05-04', person: 'Catur',   category: 'Listrik/Air',       description: 'Listrik Kontrakan Lama',    amount: 345_278,   type: 'expense' },
+  { id: 'm4',  date: '2026-05-04', person: 'Vermita', category: 'Lainnya',           description: 'Transfer Shiva',            amount: 100_000,   type: 'expense' },
+  { id: 'm5',  date: '2026-05-04', person: 'Vermita', category: 'Makanan & Minuman', description: 'Topup Opera Sabun',         amount: 30_000,    type: 'expense' },
+  { id: 'm6',  date: '2026-05-04', person: 'Vermita', category: 'Makanan & Minuman', description: 'Dada Ayam',                 amount: 24_000,    type: 'expense' },
+  { id: 'm7',  date: '2026-05-04', person: 'Vermita', category: 'Makanan & Minuman', description: 'O Save',                    amount: 158_900,   type: 'expense' },
+  { id: 'm8',  date: '2026-05-04', person: 'Vermita', category: 'Makanan & Minuman', description: 'Bebek',                     amount: 15_000,    type: 'expense' },
+  { id: 'm9',  date: '2026-05-04', person: 'Vermita', category: 'Makanan & Minuman', description: 'Jagung',                    amount: 12_000,    type: 'expense' },
+  { id: 'm10', date: '2026-05-04', person: 'Vermita', category: 'Makanan & Minuman', description: 'Mie Ayam',                  amount: 47_000,    type: 'expense' },
+  { id: 'm11', date: '2026-05-04', person: 'Vermita', category: 'Makanan & Minuman', description: 'KSK FM',                    amount: 23_000,    type: 'expense' },
+  // === MEI 3 ===
+  { id: 'm12', date: '2026-05-03', person: 'Vermita', category: 'Makanan & Minuman', description: 'Jakarta Cheese Factory',    amount: 143_000,   type: 'expense' },
+  { id: 'm13', date: '2026-05-03', person: 'Vermita', category: 'Makanan & Minuman', description: 'Podjok Kopi',               amount: 36_300,    type: 'expense' },
+  { id: 'm14', date: '2026-05-03', person: 'Keduanya', category: 'Makanan & Minuman', description: 'Nasi Box Selametan Kontrakan', amount: 528_000, type: 'expense' },
+  { id: 'm15', date: '2026-05-03', person: 'Vermita', category: 'Makanan & Minuman', description: 'Podjok Coffee',             amount: 126_500,   type: 'expense' },
+  // === MEI 2 ===
+  { id: 'm16', date: '2026-05-02', person: 'Vermita', category: 'Makanan & Minuman', description: 'Takoyaki Neysa',            amount: 25_000,    type: 'expense' },
+  { id: 'm17', date: '2026-05-02', person: 'Vermita', category: 'Makanan & Minuman', description: 'Telur Gulung',              amount: 10_000,    type: 'expense' },
+  { id: 'm18', date: '2026-05-02', person: 'Vermita', category: 'Makanan & Minuman', description: 'Pecel Lele Restu',          amount: 20_000,    type: 'expense' },
+  // === MEI 1 ===
+  { id: 'm19', date: '2026-05-01', person: 'Vermita', category: 'Makanan & Minuman', description: 'Jasa Angkut Barang',        amount: 300_000,   type: 'expense' },
+  { id: 'm20', date: '2026-05-01', person: 'Catur',   category: 'Makanan & Minuman', description: 'Jasa Bongkar Pasang AC',   amount: 950_000,   type: 'expense' },
+  { id: 'm21', date: '2026-05-01', person: 'Catur',   category: 'Kontrakan',         description: 'Pelunasan Kontrakan Baru',  amount: 1_700_000, type: 'expense' },
+  { id: 'm22', date: '2026-05-01', person: 'Vermita', category: 'Kontrakan',         description: 'DP Kontrakan Baru',         amount: 500_000,   type: 'expense' },
+  { id: 'm23', date: '2026-05-01', person: 'Vermita', category: 'Makanan & Minuman', description: 'Bayar Tokped Card',         amount: 3_004_000, type: 'expense' },
+  { id: 'm24', date: '2026-05-01', person: 'Vermita', category: 'Makanan & Minuman', description: 'Bayar SPayLater',           amount: 1_040_000, type: 'expense' },
+  { id: 'm25', date: '2026-05-01', person: 'Catur',   category: 'Makanan & Minuman', description: 'Spare Part AC',             amount: 656_000,   type: 'expense' },
 ]
 
-// Kategori pengeluaran — sesuai kategori spreadsheet April 2026 (verified)
+// Kategori pengeluaran — data Railway Mei 2026 (1-4 Mei, bulan berjalan)
 export const expenseCategories = [
-  { name: 'Makanan & Minuman', icon: '🍜', color: 'from-finance-300 to-finance-500', count: 83, total: 11_962_746 },
-  { name: 'Cicilan',           icon: '💳', color: 'from-finance-200 to-finance-400', count: 3,  total: 3_004_500  },
-  { name: 'Entertaint',        icon: '🎭', color: 'from-finance-400 to-finance-600', count: 7,  total: 1_030_000  },
-  { name: 'Listrik/Air',       icon: '💡', color: 'from-peach-300 to-peach-500',     count: 3,  total: 694_097    },
-  { name: 'Sedekah',           icon: '🤲', color: 'from-peach-200 to-peach-400',     count: 4,  total: 500_000    },
-  { name: 'Lainnya',           icon: '📦', color: 'from-blush-200 to-peach-300',     count: 3,  total: 302_500    },
-  { name: 'Transportasi',      icon: '🚗', color: 'from-blush-300 to-blush-500',     count: 9,  total: 159_000    },
-  { name: 'Skin Care',         icon: '✨', color: 'from-peach-400 to-blush-500',     count: 2,  total: 61_500     },
-  { name: 'Orang Tua',         icon: '👴', color: 'from-peach-200 to-peach-400',     count: 1,  total: 50_000     },
-  { name: 'Laundry',           icon: '👕', color: 'from-blush-300 to-finance-300',   count: 1,  total: 48_000     },
+  { name: 'Makanan & Minuman', icon: '🍜', color: 'from-finance-300 to-finance-500', count: 21, total: 7_226_881 },
+  { name: 'Kontrakan',         icon: '🏠', color: 'from-finance-200 to-finance-400', count: 2,  total: 2_200_000 },
+  { name: 'Listrik/Air',       icon: '💡', color: 'from-peach-300 to-peach-500',     count: 1,  total: 345_278   },
+  { name: 'Lainnya',           icon: '📦', color: 'from-blush-200 to-peach-300',     count: 1,  total: 100_000   },
 ]
 
 export const notes = [
   {
     id: 1,
-    title: 'Budget Bulanan',
-    body: 'Target pengeluaran April: Rp17,8jt. Over budget bulan ini. Fokus tekan pengeluaran non-esensial mulai Mei!',
+    title: 'Budget Bulanan Mei',
+    body: 'Awal Mei sudah keluar Rp9,8jt (4 hari!) termasuk biaya pindah kontrakan. Monitor sisa bulan ketat — jangan sampai over budget lagi!',
     color: 'bg-peach-100',
     darkColor: 'dark:bg-peach-200/20',
     accent: 'bg-peach-300',
@@ -199,7 +141,7 @@ export const notes = [
   {
     id: 2,
     title: 'Reminder Tagihan',
-    body: 'Listrik tgl 30/31, WiFi tgl 3, Cicilan Tokped tgl 30/31. Cek saldo sehari sebelumnya biar aman.',
+    body: 'Kontrakan baru sudah DP & lunas 🏠 Listrik lama sudah dibayar. WiFi tgl 3, cicilan Mei perlu dicatat ulang.',
     color: 'bg-finance-100',
     darkColor: 'dark:bg-finance-300/15',
     accent: 'bg-finance-300',
@@ -244,10 +186,10 @@ export const notes = [
 ]
 
 export const chatMessages = [
-  { id: 1, from: 'user',  author: 'Vermita', text: 'USG Dedek 895rb', time: '11:30' },
-  { id: 2, from: 'bot',   text: '✅ Expense Rp895.000 kategori Makanan & Minuman berhasil dicatat 🍜\n\nTotal pengeluaran bulan ini: Rp17.812.343', time: '11:30' },
-  { id: 3, from: 'user',  author: 'Catur',   text: 'Gaji April 8jt', time: '08:15' },
-  { id: 4, from: 'bot',   text: '🎉 Income Rp8.000.000 berhasil dicatat 💰\n\nTotal income bulan ini: Rp14.093.000', time: '08:15' },
+  { id: 1, from: 'user',  author: 'Vermita', text: 'bayar tokped card 3jt', time: '10:30' },
+  { id: 2, from: 'bot',   text: '✅ Expense Rp3.004.000 kategori Makanan & Minuman berhasil dicatat 🍜\n\nTotal pengeluaran bulan ini: Rp9.917.159', time: '10:30' },
+  { id: 3, from: 'user',  author: 'Catur',   text: 'bayar pelunasan kontrakan baru 1.7jt BCA', time: '09:00' },
+  { id: 4, from: 'bot',   text: '✅ Expense Rp1.700.000 kategori Kontrakan berhasil dicatat 🏠\n\nSelamat kontrakan baru! 🎉', time: '09:00' },
   { id: 5, from: 'user',  author: 'Catur',   text: 'Laporan bulan ini', time: '20:00' },
   {
     id: 6,
@@ -256,10 +198,10 @@ export const chatMessages = [
     text: '',
     time: '20:00',
     report: {
-      income: 14_093_000,
-      expense: 17_812_343,
-      balance: -3_719_343,
-      topCategory: 'Makanan & Minuman (Rp11.962.746)',
+      income: 14_500_000,
+      expense: 9_917_159,
+      balance: 4_582_841,
+      topCategory: 'Makanan & Minuman (Rp7.226.881)',
     },
   },
 ]

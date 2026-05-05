@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
-import { Sun, Moon } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Sun, Moon, RefreshCw } from 'lucide-react'
 
 const navLinks = [
   { label: 'Goals',      href: '#goals' },
@@ -13,7 +14,36 @@ function scrollToSection(href) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-export default function Navbar({ isDark, toggleDark, source }) {
+function useRelativeTime(date) {
+  const [label, setLabel] = useState('')
+
+  useEffect(() => {
+    if (!date) return
+    const update = () => {
+      const sec = Math.floor((Date.now() - date.getTime()) / 1000)
+      if (sec < 60)       setLabel('baru saja')
+      else if (sec < 3600) setLabel(`${Math.floor(sec / 60)}m lalu`)
+      else                 setLabel(`${Math.floor(sec / 3600)}j lalu`)
+    }
+    update()
+    const id = setInterval(update, 15_000)
+    return () => clearInterval(id)
+  }, [date])
+
+  return label
+}
+
+export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh }) {
+  const [spinning, setSpinning] = useState(false)
+  const syncLabel = useRelativeTime(lastSync)
+
+  const handleRefresh = async () => {
+    if (spinning) return
+    setSpinning(true)
+    await onRefresh?.()
+    setTimeout(() => setSpinning(false), 600)
+  }
+
   return (
     <motion.nav
       initial={{ y: -30, opacity: 0 }}
@@ -22,7 +52,7 @@ export default function Navbar({ isDark, toggleDark, source }) {
       className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl"
     >
       <div className="glass-strong rounded-2xl px-4 sm:px-6 py-3 flex items-center">
-        {/* Logo — kiri */}
+        {/* Logo */}
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="flex items-center gap-3 group flex-none"
@@ -37,7 +67,7 @@ export default function Navbar({ isDark, toggleDark, source }) {
               style={{ filter: 'blur(8px)', zIndex: -1 }}
             />
           </div>
-          <div className="hidden sm:block text-left">
+          <div className="block md:hidden lg:block text-left">
             <p className="display-serif text-base font-semibold leading-tight text-finance-900 dark:text-finance-50">
               Our Finance Space
             </p>
@@ -47,8 +77,8 @@ export default function Navbar({ isDark, toggleDark, source }) {
           </div>
         </button>
 
-        {/* Nav links — flex-1 mengisi ruang, justify-center agar tepat tengah */}
-        <nav className="hidden md:flex items-center gap-1 ml-8">
+        {/* Nav links — centered */}
+        <nav className="hidden md:flex flex-1 items-center justify-center gap-1">
           {navLinks.map(({ label, href }) => (
             <button
               key={href}
@@ -60,24 +90,40 @@ export default function Navbar({ isDark, toggleDark, source }) {
           ))}
         </nav>
 
-        {/* Right actions — kanan */}
-        <div className="flex items-center gap-2 justify-self-end">
-          {/* Connection indicator */}
+        {/* Right actions */}
+        <div className="flex items-center gap-2 ml-auto">
+          {/* Connection indicator + last sync + refresh */}
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/[0.08] dark:border-white/10">
             {source === 'live' ? (
               <>
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-finance-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-finance-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-finance-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-finance-500" />
                 </span>
-                <span className="text-xs font-medium text-finance-700 dark:text-finance-300">Live · Railway</span>
+                <span className="text-xs font-medium text-finance-700 dark:text-finance-300">Live</span>
+                {syncLabel && (
+                  <span className="text-[10px] text-finance-600/60 dark:text-finance-400/60">
+                    · {syncLabel}
+                  </span>
+                )}
               </>
             ) : (
               <>
-                <div className="h-2 w-2 rounded-full bg-peach-400"></div>
+                <div className="h-2 w-2 rounded-full bg-peach-400" />
                 <span className="text-xs font-medium text-peach-700 dark:text-peach-300">Demo Mode</span>
               </>
             )}
+
+            {/* Refresh button */}
+            <button
+              onClick={handleRefresh}
+              aria-label="Refresh data"
+              className="ml-1 text-finance-600/60 dark:text-finance-400/60 hover:text-finance-700 dark:hover:text-finance-300 transition-colors"
+            >
+              <motion.div animate={{ rotate: spinning ? 360 : 0 }} transition={{ duration: 0.6 }}>
+                <RefreshCw size={12} />
+              </motion.div>
+            </button>
           </div>
 
           {/* Dark mode toggle */}

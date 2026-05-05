@@ -1,64 +1,175 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import financeApi from '../services/financeApi'
 import * as dummy from '../data/dummyData'
 
-// Hook that fetches all dashboard data in parallel.
-// Falls back to dummy data on any failure.
+const MONTH_NAMES_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+
+const CATEGORY_META = {
+  'Makanan & Minuman': { icon: '🍜', color: 'from-finance-300 to-finance-500', chartColor: '#10b981' },
+  'Cicilan':           { icon: '💳', color: 'from-finance-200 to-finance-400', chartColor: '#f97316' },
+  'Kontrakan':         { icon: '🏠', color: 'from-finance-400 to-finance-600', chartColor: '#6366f1' },
+  'Entertaint':        { icon: '🎭', color: 'from-peach-400 to-blush-500',     chartColor: '#fbbf24' },
+  'Listrik/Air':       { icon: '💡', color: 'from-peach-300 to-peach-500',     chartColor: '#60a5fa' },
+  'Sedekah':           { icon: '🤲', color: 'from-peach-200 to-peach-400',     chartColor: '#a78bfa' },
+  'Lainnya':           { icon: '📦', color: 'from-blush-200 to-peach-300',     chartColor: '#f08672' },
+  'Transportasi':      { icon: '🚗', color: 'from-blush-300 to-blush-500',     chartColor: '#34d399' },
+  'Skin Care':         { icon: '✨', color: 'from-peach-400 to-blush-500',     chartColor: '#f9a8d4' },
+  'Orang Tua':         { icon: '👴', color: 'from-peach-200 to-peach-400',     chartColor: '#fdba74' },
+  'Laundry':           { icon: '👕', color: 'from-blush-300 to-finance-300',   chartColor: '#93c5fd' },
+  'Uang Harian':       { icon: '💵', color: 'from-finance-100 to-finance-300', chartColor: '#4ade80' },
+}
+const FALLBACK_COLORS = ['#10b981','#f97316','#6366f1','#fbbf24','#60a5fa','#a78bfa','#f08672','#34d399']
+
+function getMeta(catName, idx) {
+  return CATEGORY_META[catName] || {
+    icon: '📦',
+    color: 'from-finance-200 to-finance-400',
+    chartColor: FALLBACK_COLORS[idx % FALLBACK_COLORS.length],
+  }
+}
+
+/**
+ * Ambil income dari sheet_inc_* records Railway.
+ * Backend sering ikut-ikutkan baris total dari bulan lain → filter:
+ * - Amount harus dalam range gaji wajar (10jt – 25jt gabungan)
+ * - Ambil row number tertinggi (record paling baru di spreadsheet)
+ * Fallback ke dummy.summary.monthlyIncome jika tidak ada yang lolos filter.
+ */
+function extractSheetIncome(transactions) {
+  const candidates = transactions
+    .filter(t => t.type === 'income' && /^sheet_inc_\d+$/.test(t.id ?? ''))
+    .filter(t => t.amount >= 10_000_000 && t.amount <= 25_000_000)
+    .sort((a, b) => {
+      const rowA = parseInt(a.id.replace('sheet_inc_', ''))
+      const rowB = parseInt(b.id.replace('sheet_inc_', ''))
+      return rowB - rowA // row tertinggi = entry paling baru
+    })
+  return candidates[0]?.amount ?? null
+}
+
+function buildDashboard(transactions) {
+  const now = new Date()
+  const yr  = now.getFullYear()
+  const mo  = now.getMonth() // 0-indexed
+  const currentMonthStr = `${yr}-${String(mo + 1).padStart(2, '0')}`
+
+  // Expense bulan ini
+  const monthExpTx = transactions.filter(
+    t => t.type === 'expense' && t.date?.startsWith(currentMonthStr)
+  )
+  const monthlyExpense   = monthExpTx.reduce((s, t) => s + (t.amount || 0), 0)
+  const transactionCount = transactions.filter(t => t.date?.startsWith(currentMonthStr)).length
+
+  // Income: dari sheet_inc_* (real-time Google Sheets) → fallback dummy
+  const sheetIncome  = extractSheetIncome(transactions)
+  const monthlyIncome = sheetIncome ?? dummy.summary.monthlyIncome
+
+  // Kategori
+  const catMap = {}
+  for (const t of monthExpTx) {
+    const cat = t.category || 'Lainnya'
+    if (!catMap[cat]) catMap[cat] = { name: cat, total: 0, count: 0 }
+    catMap[cat].total += t.amount || 0
+    catMap[cat].count++
+  }
+  const categories = Object.values(catMap)
+    .sort((a, b) => b.total - a.total)
+    .map((c, i) => ({ ...c, ...getMeta(c.name, i) }))
+
+  const categoryChart = categories.map((c, i) => ({
+    name: c.name, value: c.total,
+    color: getMeta(c.name, i).chartColor,
+    icon: getMeta(c.name, i).icon,
+  }))
+
+  // Cashflow: historical dari dummy, bulan ini dari live
+  const cashflow = dummy.monthlyCashflow.map((m, i) =>
+    i === mo ? { ...m, income: monthlyIncome, expense: monthlyExpense } : m
+  )
+
+  // Summary
+  const summary = {
+    ...dummy.summary,
+    monthlyIncome,
+    monthlyExpense,
+    transactionCount,
+    activeMonth: MONTH_NAMES_ID[mo],
+    activeYear:  yr,
+  }
+
+  // Transaksi tampilan: expense semua + income hanya yang WhatsApp (UUID, bukan sheet_*)
+  const displayTransactions = transactions
+    .filter(t => t.type === 'expense' || (t.type === 'income' && !/^sheet_/.test(t.id ?? '')))
+    .slice(0, 80)
+
+  return { summary, categories, categoryChart, cashflow, displayTransactions }
+}
+
+const INITIAL_DATA = {
+  summary:       dummy.summary,
+  goals:         dummy.goals,
+  categories:    dummy.expenseCategories,
+  categoryChart: dummy.expenseByCategory,
+  cashflow:      dummy.monthlyCashflow,
+  transactions:  dummy.recentTransactions,
+  notes:         dummy.notes,
+  couple:        dummy.couple,
+}
+
+const POLL_INTERVAL = 2 * 60 * 1000 // 2 menit
+
 export function useFinanceData() {
-  const [data, setData] = useState({
-    summary: dummy.summary,
-    goals: dummy.goals,
-    categories: dummy.expenseCategories,
-    categoryChart: dummy.expenseByCategory,
-    cashflow: dummy.monthlyCashflow,
-    transactions: dummy.recentTransactions,
-    notes: dummy.notes,
-    couple: dummy.couple,
-  })
+  const [data, setData]       = useState(INITIAL_DATA)
   const [loading, setLoading] = useState(true)
-  const [source, setSource] = useState('dummy') // 'dummy' | 'live'
+  const [source, setSource]   = useState('dummy')
+  const [lastSync, setLastSync] = useState(null)
+  const mountedRef = useRef(true)
 
-  useEffect(() => {
-    console.log(data.goals)
-    let cancelled = false
+  const load = useCallback(async () => {
+    const [txResult, goalsResult, notesResult, coupleResult] = await Promise.all([
+      financeApi.getTransactions(),
+      financeApi.getGoals(),
+      financeApi.getNotes(),
+      financeApi.getCouple(),
+    ])
 
-    async function load() {
-      const [
-        summary, goals, categories, categoryChart,
-        cashflow, transactions, notes, couple,
-      ] = await Promise.all([
-        financeApi.getSummary(),
-        financeApi.getGoals(),
-        financeApi.getCategories(),
-        financeApi.getCategoryChart(),
-        financeApi.getCashflow(),
-        financeApi.getTransactions(),
-        financeApi.getNotes(),
-        financeApi.getCouple(),
-      ])
+    if (!mountedRef.current) return
 
-      if (cancelled) return
+    const isLive = txResult.source === 'live'
 
-      const anyLive = [summary, goals, categories, categoryChart,
-        cashflow, transactions, notes, couple].some(r => r.source === 'live')
+    if (isLive) {
+      const { summary, categories, categoryChart, cashflow, displayTransactions } =
+        buildDashboard(txResult.data)
 
       setData({
-        summary: summary.data,
-        goals: goals.data,
-        categories: categories.data,
-        categoryChart: categoryChart.data,
-        cashflow: cashflow.data,
-        transactions: transactions.data,
-        notes: notes.data,
-        couple: couple.data,
+        summary,
+        goals:        goalsResult.data,
+        categories,
+        categoryChart,
+        cashflow,
+        transactions: displayTransactions,
+        notes:        notesResult.data,
+        couple:       coupleResult.data,
       })
-      setSource(anyLive ? 'live' : 'dummy')
-      setLoading(false)
+      setSource('live')
+    } else {
+      setData(INITIAL_DATA)
+      setSource('dummy')
     }
 
-    load()
-    return () => { cancelled = true }
+    setLastSync(new Date())
+    setLoading(false)
   }, [])
 
-  return { ...data, loading, source }
+  useEffect(() => {
+    mountedRef.current = true
+    load()
+    const interval = setInterval(load, POLL_INTERVAL)
+    return () => {
+      mountedRef.current = false
+      clearInterval(interval)
+    }
+  }, [load])
+
+  return { ...data, loading, source, lastSync, refresh: load }
 }

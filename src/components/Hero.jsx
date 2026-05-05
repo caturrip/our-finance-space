@@ -142,11 +142,12 @@ export default function Hero({ couple, summary }) {
           {summary && (() => {
             const net = summary.monthlyIncome - summary.monthlyExpense
             const isPositive = net >= 0
+            const month = summary.activeMonth ?? 'Bulan Ini'
             return (
               <div className="inline-flex items-center glass-card rounded-2xl px-6 py-3.5 gap-5 sm:gap-7">
                 <div className="text-center">
                   <p className="text-[9px] uppercase tracking-[0.2em] text-finance-700/55 dark:text-finance-300/55 mb-0.5">
-                    April Income
+                    {month} Income
                   </p>
                   <p className="number-mono text-sm font-semibold text-finance-600 dark:text-finance-300">
                     {formatRupiah(summary.monthlyIncome, { compact: true })}
@@ -155,7 +156,7 @@ export default function Hero({ couple, summary }) {
                 <div className="w-1 h-1 rounded-full bg-finance-300/60 dark:bg-finance-500/50" />
                 <div className="text-center">
                   <p className="text-[9px] uppercase tracking-[0.2em] text-finance-700/55 dark:text-finance-300/55 mb-0.5">
-                    April Expense
+                    {month} Expense
                   </p>
                   <p className="number-mono text-sm font-semibold text-peach-600 dark:text-peach-300">
                     {formatRupiah(summary.monthlyExpense, { compact: true })}

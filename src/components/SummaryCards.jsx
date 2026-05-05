@@ -3,7 +3,10 @@ import CountUp from 'react-countup'
 import { Wallet, TrendingUp, TrendingDown, Receipt, Target, ChevronRight } from 'lucide-react'
 import { formatRupiah } from '../utils/format'
 
-const cards = (summary) => [
+const cards = (summary) => {
+  const month = summary.activeMonth ?? 'Bulan Ini'
+  const year = summary.activeYear ?? ''
+  return [
   {
     title: 'Total Balance',
     value: summary.totalBalance,
@@ -28,9 +31,6 @@ const cards = (summary) => [
     isCurrency: true,
     emoji: '📈',
     sub: 'Gaji Catur + Gaji Vermita',
-    delta: '-25.1%',
-    deltaPositive: false,
-    deltaNote: 'vs Maret (ada THR)',
     sectionId: 'charts',
     isClickable: true,
     hint: 'Lihat cashflow chart',
@@ -44,10 +44,7 @@ const cards = (summary) => [
     iconColor: 'text-peach-700 dark:text-peach-300',
     isCurrency: true,
     emoji: '📉',
-    sub: 'Total April 2026',
-    delta: '-37.0%',
-    deltaPositive: true,
-    deltaNote: 'vs Maret',
+    sub: `${month} ${year} (1–4 ${month})`,
     sectionId: 'categories',
     isClickable: true,
     hint: 'Lihat per kategori',
@@ -80,7 +77,7 @@ const cards = (summary) => [
     isClickable: true,
     hint: 'Lihat saving goals',
   },
-]
+]}
 
 function SummaryCard({ card, index, onCardClick }) {
   const Icon = card.icon

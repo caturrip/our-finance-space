@@ -22,7 +22,7 @@ export default function App() {
   const { isDark, toggle } = useDarkMode()
   const {
     summary, goals, categories, categoryChart, cashflow,
-    transactions, notes, couple, source, loading,
+    transactions, notes, couple, source, loading, lastSync, refresh,
   } = useFinanceData()
 
   const [showBalance, setShowBalance] = useState(false)
@@ -32,7 +32,7 @@ export default function App() {
   return (
     <div className="relative min-h-screen text-finance-950 dark:text-finance-50 noise">
       <Background />
-      <Navbar isDark={isDark} toggleDark={toggle} source={source} />
+      <Navbar isDark={isDark} toggleDark={toggle} source={source} lastSync={lastSync} onRefresh={refresh} />
 
       {/* HERO */}
       <Hero couple={couple} summary={summary} />
@@ -77,7 +77,7 @@ export default function App() {
             italic="motion"
             subtitle="Visualisasi alur kas dan kategori pengeluaran kalian."
           />
-          <Charts categoryData={categoryChart} cashflowData={cashflow} isDark={isDark} />
+          <Charts categoryData={categoryChart} cashflowData={cashflow} isDark={isDark} summary={summary} />
         </section>
 
         {/* WA BOT */}
@@ -126,7 +126,7 @@ export default function App() {
       </main>
 
       {/* extra space on mobile for bottom nav */}
-      <div className="h-20 lg:hidden" />
+      <div className="h-24 lg:hidden" />
       <Footer />
       <FloatingActions />
     </div>

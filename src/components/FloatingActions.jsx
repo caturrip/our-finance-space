@@ -89,41 +89,48 @@ export default function FloatingActions() {
         ))}
       </div>
 
-      {/* Mobile bottom nav — visible below lg */}
-      <motion.div
+      {/* Mobile bottom nav — visible below lg, full width */}
+      <motion.nav
         initial={{ y: 80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 lg:hidden"
+        className="fixed bottom-3 left-3 right-3 z-40 lg:hidden"
+        aria-label="Mobile navigation"
       >
-        <div className="glass-strong rounded-2xl px-2 py-2 flex items-center gap-1">
+        <div className="glass-strong rounded-2xl flex items-center px-1 py-1">
           {sections.map(({ id, label, icon: Icon }) => {
             const isActive = activeSection === id
             return (
               <button
                 key={id}
                 onClick={() => scrollTo(id)}
-                className={`relative flex flex-col items-center gap-0.5 px-2 py-2 rounded-xl transition-all duration-200 ${
+                aria-label={label}
+                className={`relative flex flex-col items-center justify-center gap-1 flex-1 py-2.5 rounded-xl min-h-[48px] transition-colors duration-200 ${
                   isActive
                     ? 'text-finance-700 dark:text-finance-200'
-                    : 'text-finance-500/60 dark:text-finance-400/60 hover:text-finance-700 dark:hover:text-finance-200'
+                    : 'text-finance-500/50 dark:text-finance-400/50 active:text-finance-700 dark:active:text-finance-200'
                 }`}
-                aria-label={label}
               >
                 {isActive && (
                   <motion.div
                     layoutId="mobile-nav-pill"
                     className="absolute inset-0 bg-finance-100/80 dark:bg-finance-500/15 rounded-xl"
-                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                   />
                 )}
-                <Icon size={16} className="relative z-10" />
-                <span className="relative z-10 text-[9px] font-medium whitespace-nowrap">{label}</span>
+                <Icon
+                  size={20}
+                  strokeWidth={isActive ? 2.2 : 1.6}
+                  className="relative z-10"
+                />
+                <span className="relative z-10 text-[10px] font-medium leading-none tracking-wide">
+                  {label}
+                </span>
               </button>
             )
           })}
         </div>
-      </motion.div>
+      </motion.nav>
 
       {/* Back to Top button — desktop only to avoid overlap with mobile nav */}
       <AnimatePresence>
