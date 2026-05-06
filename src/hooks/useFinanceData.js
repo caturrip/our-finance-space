@@ -82,10 +82,45 @@ function buildDashboard(transactions) {
     icon: getMeta(c.name, i).icon,
   }))
 
-  // Cashflow: historical dari dummy, bulan ini dari live
-  const cashflow = dummy.monthlyCashflow.map((m, i) =>
-    i === mo ? { ...m, income: monthlyIncome, expense: monthlyExpense } : m
+  // Cashflow: hitung dari semua transaksi berdasarkan tanggal, per bulan tahun ini
+  const expenseByMonth  = new Array(12).fill(0)
+  const incomeByMonth   = new Array(12).fill(0)
+
+  for (const t of transactions) {
+    if (!t.date) continue
+    const txDate = new Date(t.date)
+    if (txDate.getFullYear() !== yr) continue
+    const txMo = txDate.getMonth()
+    if (t.type === 'expense') {
+      expenseByMonth[txMo] += t.amount || 0
+    }
+  }
+
+  // Income per bulan dari sheet_inc_* — ambil entry dengan row tertinggi per bulan
+  const incRecords = transactions.filter(
+    t => t.type === 'income' && /^sheet_inc_\d+$/.test(t.id ?? '') &&
+         t.amount >= 10_000_000 && t.amount <= 25_000_000
   )
+  const bestIncRow = {} // txMo → { amount, row }
+  for (const t of incRecords) {
+    if (!t.date) continue
+    const txMo = new Date(t.date).getMonth()
+    const row  = parseInt(t.id.replace('sheet_inc_', ''))
+    if (!bestIncRow[txMo] || row > bestIncRow[txMo].row) {
+      bestIncRow[txMo] = { amount: t.amount, row }
+    }
+  }
+  for (const [mo_, { amount }] of Object.entries(bestIncRow)) {
+    incomeByMonth[+mo_] = amount
+  }
+  // Bulan ini: pastikan pakai nilai yang sudah diextract
+  if (monthlyIncome) incomeByMonth[mo] = monthlyIncome
+
+  const cashflow = MONTH_NAMES_ID.map((month, i) => ({
+    month,
+    income:  incomeByMonth[i],
+    expense: expenseByMonth[i],
+  }))
 
   // Summary
   const summary = {
