@@ -116,7 +116,7 @@ const INITIAL_DATA = {
   couple:        dummy.couple,
 }
 
-const POLL_INTERVAL = 2 * 60 * 1000 // 2 menit
+const POLL_INTERVAL = 30 * 1000 // 30 detik
 
 export function useFinanceData() {
   const [data, setData]       = useState(INITIAL_DATA)
@@ -165,9 +165,17 @@ export function useFinanceData() {
     mountedRef.current = true
     load()
     const interval = setInterval(load, POLL_INTERVAL)
+
+    // Refresh saat tab aktif kembali (misal: user buka tab setelah kirim WA)
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') load()
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
     return () => {
       mountedRef.current = false
       clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     }
   }, [load])
 

@@ -3,10 +3,10 @@ import { useState, useEffect } from 'react'
 import { Sun, Moon, RefreshCw } from 'lucide-react'
 
 const navLinks = [
-  { label: 'Goals',      href: '#goals' },
-  { label: 'Charts',     href: '#charts' },
-  { label: 'Transaksi',  href: '#transactions' },
-  { label: 'Kategori',   href: '#categories' },
+  { label: 'Goals', href: '#goals' },
+  { label: 'Charts', href: '#charts' },
+  { label: 'Transaksi', href: '#transactions' },
+  { label: 'Kategori', href: '#categories' },
 ]
 
 function scrollToSection(href) {
@@ -21,9 +21,9 @@ function useRelativeTime(date) {
     if (!date) return
     const update = () => {
       const sec = Math.floor((Date.now() - date.getTime()) / 1000)
-      if (sec < 60)       setLabel('baru saja')
+      if (sec < 60) setLabel('baru saja')
       else if (sec < 3600) setLabel(`${Math.floor(sec / 60)}m lalu`)
-      else                 setLabel(`${Math.floor(sec / 3600)}j lalu`)
+      else setLabel(`${Math.floor(sec / 3600)}j lalu`)
     }
     update()
     const id = setInterval(update, 15_000)
@@ -51,14 +51,14 @@ export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh
       transition={{ duration: 0.6, delay: 0.1 }}
       className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl"
     >
-      <div className="glass-strong rounded-2xl px-4 sm:px-6 py-3 flex items-center">
+      <div className="glass-strong rounded-2xl px-4 sm:px-6 py-3 grid grid-cols-[1fr_auto_1fr] md:grid-cols-[auto_1fr_auto] items-center gap-2">
         {/* Logo */}
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="flex items-center gap-3 group flex-none"
+          className="flex items-center gap-3 group"
           aria-label="Back to top"
         >
-          <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-finance-500 via-finance-600 to-peach-400 flex items-center justify-center shadow-lg shadow-finance-500/20 group-hover:shadow-finance-500/40 transition-shadow">
+          <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-finance-500 via-finance-600 to-peach-400 flex items-center justify-center shadow-lg shadow-finance-500/20 group-hover:shadow-finance-500/40 transition-shadow flex-none">
             <span className="text-white text-lg">💚</span>
             <motion.div
               className="absolute inset-0 rounded-xl bg-gradient-to-br from-finance-400 to-peach-400"
@@ -67,7 +67,7 @@ export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh
               style={{ filter: 'blur(8px)', zIndex: -1 }}
             />
           </div>
-          <div className="block md:hidden lg:block text-left">
+          <div className="hidden lg:block text-left">
             <p className="display-serif text-base font-semibold leading-tight text-finance-900 dark:text-finance-50">
               Our Finance Space
             </p>
@@ -77,8 +77,8 @@ export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh
           </div>
         </button>
 
-        {/* Nav links — centered */}
-        <nav className="hidden md:flex flex-1 items-center justify-center gap-1">
+        {/* Nav links — center column */}
+        <nav className="hidden md:flex items-justify gap-8">
           {navLinks.map(({ label, href }) => (
             <button
               key={href}
@@ -91,7 +91,7 @@ export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh
         </nav>
 
         {/* Right actions */}
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2 justify-end">
           {/* Connection indicator + last sync + refresh */}
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/[0.08] dark:border-white/10">
             {source === 'live' ? (
