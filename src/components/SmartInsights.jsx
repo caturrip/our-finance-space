@@ -52,7 +52,7 @@ function generateInsights(summary, categories) {
   }
 
   // 3. vs bulan lalu
-  if (deltaExpense !== null && mo > 0) {
+  if (deltaExpense != null && mo > 0) {
     const prevMonthName = MONTH_NAMES_ID[mo - 1]
     const isGood = deltaExpense <= 0
     insights.push({
@@ -110,7 +110,7 @@ function generateInsights(summary, categories) {
   }
 
   // 6. Income delta
-  if (deltaIncome !== null && Math.abs(deltaIncome) > 1) {
+  if (deltaIncome != null && Math.abs(deltaIncome) > 1) {
     const isUp = deltaIncome > 0
     insights.push({
       id: 'income-delta',
