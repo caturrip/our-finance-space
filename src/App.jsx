@@ -17,6 +17,9 @@ import CategoryGrid from './components/CategoryGrid'
 import FinanceNotes from './components/FinanceNotes'
 import Footer from './components/Footer'
 import FloatingActions from './components/FloatingActions'
+import SmartInsights from './components/SmartInsights'
+import SpendingHeatmap from './components/SpendingHeatmap'
+import PersonBreakdown from './components/PersonBreakdown'
 
 export default function App() {
   const { isDark, toggle } = useDarkMode()
@@ -58,6 +61,17 @@ export default function App() {
           </AnimatePresence>
         </section>
 
+        {/* SMART INSIGHTS */}
+        <section className="pb-10 sm:pb-12">
+          <SectionHeader
+            eyebrow="Analysis"
+            title="Smart"
+            italic="Insights"
+            subtitle="Ringkasan otomatis dari data keuangan kalian — diperbarui setiap sinkronisasi."
+          />
+          <SmartInsights summary={summary} categories={categories} />
+        </section>
+
         {/* SAVING GOALS */}
         <section id="goals" className="py-12 sm:py-16 scroll-mt-20">
           <SectionHeader
@@ -78,6 +92,9 @@ export default function App() {
             subtitle="Visualisasi alur kas dan kategori pengeluaran kalian."
           />
           <Charts categoryData={categoryChart} cashflowData={cashflow} isDark={isDark} summary={summary} />
+          <div className="mt-5 sm:mt-6">
+            <SpendingHeatmap transactions={transactions} />
+          </div>
         </section>
 
         {/* WA BOT */}
@@ -111,6 +128,17 @@ export default function App() {
             subtitle="Kategori yang disinkronkan langsung dari bot — tap untuk lihat detail."
           />
           <CategoryGrid categories={categories} />
+        </section>
+
+        {/* PERSON BREAKDOWN */}
+        <section className="py-12 sm:py-16">
+          <SectionHeader
+            eyebrow="Couple"
+            title="Catur"
+            italic="& Vermita"
+            subtitle="Siapa yang paling banyak keluar bulan ini? Breakdown pengeluaran per orang."
+          />
+          <PersonBreakdown transactions={transactions} />
         </section>
 
         {/* NOTES */}
