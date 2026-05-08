@@ -74,7 +74,11 @@ function buildDashboard(transactions) {
   }
   const categories = Object.values(catMap)
     .sort((a, b) => b.total - a.total)
-    .map((c, i) => ({ ...c, ...getMeta(c.name, i) }))
+    .map((c, i) => ({
+      ...c,
+      ...getMeta(c.name, i),
+      budget: dummy.categoryBudgets[c.name] ?? null,
+    }))
 
   const categoryChart = categories.map((c, i) => ({
     name: c.name, value: c.total,
@@ -94,8 +98,17 @@ function buildDashboard(transactions) {
   const projectedExpense = daysIntoMonth > 0
     ? Math.round(monthlyExpense / daysIntoMonth * daysInMonth)
     : 0
-  const burnRate  = monthlyIncome > 0 ? (monthlyExpense / monthlyIncome) * 100 : 0
+  const burnRate   = monthlyIncome > 0 ? (monthlyExpense / monthlyIncome) * 100 : 0
   const netSavings = monthlyIncome - monthlyExpense
+
+  // Delta vs bulan lalu (dari cashflow historis)
+  const prevMoData = mo > 0 ? dummy.monthlyCashflow[mo - 1] : null
+  const deltaExpense = prevMoData?.expense > 0
+    ? ((monthlyExpense - prevMoData.expense) / prevMoData.expense) * 100
+    : null
+  const deltaIncome = prevMoData?.income > 0
+    ? ((monthlyIncome - prevMoData.income) / prevMoData.income) * 100
+    : null
 
   // Summary
   const summary = {
@@ -110,6 +123,8 @@ function buildDashboard(transactions) {
     projectedExpense,
     burnRate,
     netSavings,
+    deltaExpense,
+    deltaIncome,
   }
 
   // Transaksi tampilan: expense semua + income hanya yang WhatsApp (UUID, bukan sheet_*)
@@ -123,7 +138,10 @@ function buildDashboard(transactions) {
 const INITIAL_DATA = {
   summary:       dummy.summary,
   goals:         dummy.goals,
-  categories:    dummy.expenseCategories,
+  categories:    dummy.expenseCategories.map(c => ({
+    ...c,
+    budget: dummy.categoryBudgets[c.name] ?? null,
+  })),
   categoryChart: dummy.expenseByCategory,
   cashflow:      dummy.monthlyCashflow,
   transactions:  dummy.recentTransactions,

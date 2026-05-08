@@ -34,6 +34,10 @@ const cards = (summary) => {
     sectionId: 'charts',
     isClickable: true,
     hint: 'Lihat cashflow chart',
+    delta: summary.deltaIncome != null
+      ? `${summary.deltaIncome >= 0 ? '+' : ''}${summary.deltaIncome.toFixed(0)}%`
+      : null,
+    deltaPositive: (summary.deltaIncome ?? 0) >= 0,
   },
   {
     title: 'Expense This Month',
@@ -55,6 +59,10 @@ const cards = (summary) => {
     monthlyIncome: summary.monthlyIncome,
     daysIntoMonth: summary.daysIntoMonth,
     daysInMonth: summary.daysInMonth,
+    delta: summary.deltaExpense != null
+      ? `${summary.deltaExpense >= 0 ? '+' : ''}${summary.deltaExpense.toFixed(0)}%`
+      : null,
+    deltaPositive: (summary.deltaExpense ?? 0) <= 0,
   },
   {
     title: 'Transactions',

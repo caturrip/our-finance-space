@@ -120,6 +120,22 @@ export const recentTransactions = [
   { id: 'm25', date: '2026-05-01', person: 'Catur',   category: 'Makanan & Minuman', description: 'Spare Part AC',             amount: 656_000,   type: 'expense' },
 ]
 
+// Budget bulanan per kategori — bisa disesuaikan setiap bulan
+export const categoryBudgets = {
+  'Makanan & Minuman': 4_500_000,
+  'Kontrakan':         2_200_000,
+  'Cicilan':           2_000_000,
+  'Transportasi':      600_000,
+  'Listrik/Air':       450_000,
+  'Sedekah':           500_000,
+  'Orang Tua':         500_000,
+  'Uang Harian':       500_000,
+  'Skin Care':         400_000,
+  'Entertaint':        300_000,
+  'Laundry':           200_000,
+  'Lainnya':           300_000,
+}
+
 // Kategori pengeluaran — data Railway Mei 2026 (1-4 Mei, bulan berjalan)
 export const expenseCategories = [
   { name: 'Makanan & Minuman', icon: '🍜', color: 'from-finance-300 to-finance-500', count: 21, total: 7_226_881 },
