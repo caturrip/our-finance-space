@@ -88,6 +88,15 @@ function buildDashboard(transactions) {
     i === mo ? { ...m, income: monthlyIncome, expense: monthlyExpense } : m
   )
 
+  // Burn rate & proyeksi
+  const daysIntoMonth = now.getDate()
+  const daysInMonth   = new Date(yr, mo + 1, 0).getDate()
+  const projectedExpense = daysIntoMonth > 0
+    ? Math.round(monthlyExpense / daysIntoMonth * daysInMonth)
+    : 0
+  const burnRate  = monthlyIncome > 0 ? (monthlyExpense / monthlyIncome) * 100 : 0
+  const netSavings = monthlyIncome - monthlyExpense
+
   // Summary
   const summary = {
     ...dummy.summary,
@@ -96,6 +105,11 @@ function buildDashboard(transactions) {
     transactionCount,
     activeMonth: MONTH_NAMES_ID[mo],
     activeYear:  yr,
+    daysIntoMonth,
+    daysInMonth,
+    projectedExpense,
+    burnRate,
+    netSavings,
   }
 
   // Transaksi tampilan: expense semua + income hanya yang WhatsApp (UUID, bukan sheet_*)

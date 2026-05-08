@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import CountUp from 'react-countup'
-import { Wallet, TrendingUp, TrendingDown, Receipt, Target, ChevronRight } from 'lucide-react'
+import { Wallet, TrendingUp, TrendingDown, Receipt, Target, ChevronRight, AlertTriangle } from 'lucide-react'
 import { formatRupiah } from '../utils/format'
 
 const cards = (summary) => {
@@ -44,10 +44,17 @@ const cards = (summary) => {
     iconColor: 'text-peach-700 dark:text-peach-300',
     isCurrency: true,
     emoji: '📉',
-    sub: `${month} ${year} (1–4 ${month})`,
+    sub: summary.daysIntoMonth
+      ? `${month} ${year} (hari ke-${summary.daysIntoMonth})`
+      : `${month} ${year}`,
     sectionId: 'categories',
     isClickable: true,
     hint: 'Lihat per kategori',
+    burnRate: summary.burnRate,
+    projectedExpense: summary.projectedExpense,
+    monthlyIncome: summary.monthlyIncome,
+    daysIntoMonth: summary.daysIntoMonth,
+    daysInMonth: summary.daysInMonth,
   },
   {
     title: 'Transactions',
@@ -173,6 +180,42 @@ function SummaryCard({ card, index, onCardClick }) {
             transition={{ duration: 1.5, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className={`h-full bg-gradient-to-r ${card.accent} rounded-full`}
           />
+        </div>
+      )}
+
+      {/* Burn rate indicator for expense card */}
+      {card.burnRate != null && card.daysIntoMonth > 0 && (
+        <div className="mt-4 space-y-2">
+          {/* spending vs income bar */}
+          <div className="relative h-1.5 rounded-full bg-peach-100 dark:bg-peach-900/30 overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              whileInView={{ width: `${Math.min(card.burnRate, 100)}%` }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.5, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className={`h-full rounded-full ${
+                card.burnRate > 90
+                  ? 'bg-gradient-to-r from-red-400 to-red-500'
+                  : card.burnRate > 70
+                  ? 'bg-gradient-to-r from-peach-400 to-blush-500'
+                  : 'bg-gradient-to-r from-finance-400 to-finance-600'
+              }`}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[10px] number-mono">
+            <span className={`font-semibold ${
+              card.burnRate > 90
+                ? 'text-red-600 dark:text-red-400'
+                : card.burnRate > 70
+                ? 'text-peach-600 dark:text-peach-400'
+                : 'text-finance-600 dark:text-finance-400'
+            }`}>
+              {card.burnRate.toFixed(0)}% dari income
+            </span>
+            <span className="text-finance-700/50 dark:text-finance-300/50">
+              proj. {formatRupiah(card.projectedExpense, { compact: true })}
+            </span>
+          </div>
         </div>
       )}
 

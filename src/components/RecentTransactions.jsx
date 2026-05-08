@@ -1,9 +1,18 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { ArrowDownLeft, ArrowUpRight, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatRupiah, formatDate } from '../utils/format'
 
 const PAGE_SIZE = 10
+
+const MONTH_LABELS = {
+  '2026-01': 'Jan 26', '2026-02': 'Feb 26', '2026-03': 'Mar 26',
+  '2026-04': 'Apr 26', '2026-05': 'Mei 26', '2026-06': 'Jun 26',
+  '2026-07': 'Jul 26', '2026-08': 'Agu 26', '2026-09': 'Sep 26',
+  '2026-10': 'Okt 26', '2026-11': 'Nov 26', '2026-12': 'Des 26',
+  '2025-08': 'Agu 25', '2025-09': 'Sep 25', '2025-10': 'Okt 25',
+  '2025-11': 'Nov 25', '2025-12': 'Des 25',
+}
 
 const categoryEmoji = {
   'Makanan & Minuman': '🍜',
@@ -23,11 +32,22 @@ const categoryEmoji = {
 
 export default function RecentTransactions({ transactions }) {
   const [filter, setFilter] = useState('all')
+  const [monthFilter, setMonthFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
 
+  // Bulan-bulan yang tersedia dari data
+  const availableMonths = useMemo(() => {
+    const months = new Set()
+    transactions.forEach(t => {
+      if (t.date) months.add(t.date.slice(0, 7))
+    })
+    return Array.from(months).sort().reverse()
+  }, [transactions])
+
   const filtered = transactions.filter(t => {
     if (filter !== 'all' && t.type !== filter) return false
+    if (monthFilter !== 'all' && !t.date?.startsWith(monthFilter)) return false
     if (search && !t.description.toLowerCase().includes(search.toLowerCase())
         && !t.category.toLowerCase().includes(search.toLowerCase())) return false
     return true
@@ -37,6 +57,7 @@ export default function RecentTransactions({ transactions }) {
   const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   const handleFilter = (id) => { setFilter(id); setPage(0) }
+  const handleMonthFilter = (m) => { setMonthFilter(m); setPage(0) }
   const handleSearch = (e) => { setSearch(e.target.value); setPage(0) }
 
   const filterTabs = [
@@ -54,7 +75,7 @@ export default function RecentTransactions({ transactions }) {
       className="glass-card rounded-2xl p-5 sm:p-7"
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+      <div className="flex items-start justify-between mb-5 flex-wrap gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.25em] text-finance-700/70 dark:text-finance-300/70 mb-1 number-mono">
             Recent activity
@@ -102,6 +123,35 @@ export default function RecentTransactions({ transactions }) {
         </div>
       </div>
 
+      {/* Month filter — hanya tampil jika ada lebih dari 1 bulan data */}
+      {availableMonths.length > 1 && (
+        <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+          <button
+            onClick={() => handleMonthFilter('all')}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              monthFilter === 'all'
+                ? 'bg-finance-500 text-white'
+                : 'bg-white/40 dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-finance-700/70 dark:text-finance-300/70 hover:bg-white/60 dark:hover:bg-white/10'
+            }`}
+          >
+            Semua
+          </button>
+          {availableMonths.map(m => (
+            <button
+              key={m}
+              onClick={() => handleMonthFilter(m)}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium number-mono transition-colors ${
+                monthFilter === m
+                  ? 'bg-finance-500 text-white'
+                  : 'bg-white/40 dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-finance-700/70 dark:text-finance-300/70 hover:bg-white/60 dark:hover:bg-white/10'
+              }`}
+            >
+              {MONTH_LABELS[m] ?? m}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Desktop table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
@@ -117,7 +167,7 @@ export default function RecentTransactions({ transactions }) {
           </thead>
           <AnimatePresence mode="wait">
             <motion.tbody
-              key={`${filter}-${search}-${page}`}
+              key={`${filter}-${monthFilter}-${search}-${page}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -181,7 +231,7 @@ export default function RecentTransactions({ transactions }) {
       {/* Mobile cards */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={`mobile-${filter}-${search}-${page}`}
+          key={`mobile-${filter}-${monthFilter}-${search}-${page}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

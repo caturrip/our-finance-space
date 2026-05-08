@@ -158,6 +158,10 @@ function CashflowChart({ data, isDark }) {
 
   const activeCount = data.filter(m => m.income > 0 || m.expense > 0).length
 
+  // Net summary per active month
+  const activeMonths = data.filter(m => m.income > 0 || m.expense > 0)
+  const totalNet = activeMonths.reduce((s, m) => s + (m.income - m.expense), 0)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -175,7 +179,7 @@ function CashflowChart({ data, isDark }) {
             Monthly Cashflow
           </h3>
         </div>
-        <div className="flex items-center gap-4 text-xs">
+        <div className="flex items-center gap-4 text-xs flex-wrap">
           <span className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-finance-500"></span>
             <span className="text-finance-700 dark:text-finance-200 font-medium">Income</span>
@@ -184,8 +188,12 @@ function CashflowChart({ data, isDark }) {
             <span className="w-3 h-3 rounded-full bg-peach-500"></span>
             <span className="text-peach-700 dark:text-peach-200 font-medium">Expense</span>
           </span>
-          <span className="text-[10px] number-mono text-finance-700/50 dark:text-finance-300/50">
-            {activeCount} bulan tercatat
+          <span className={`text-[10px] number-mono font-semibold px-2 py-0.5 rounded-full ${
+            totalNet >= 0
+              ? 'bg-finance-100 text-finance-700 dark:bg-finance-500/15 dark:text-finance-300'
+              : 'bg-peach-100 text-peach-700 dark:bg-peach-500/15 dark:text-peach-300'
+          }`}>
+            Net {totalNet >= 0 ? '+' : ''}{formatRupiah(totalNet, { compact: true })}
           </span>
         </div>
       </div>

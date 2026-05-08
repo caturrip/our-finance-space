@@ -70,11 +70,11 @@ export const expenseByCategory = [
 
 // Cashflow bulanan 2026 — data nyata dari spreadsheet + Railway
 export const monthlyCashflow = [
-  { month: 'Jan', income: 0,          expense: 0 },
-  { month: 'Feb', income: 8_068_689,  expense: 8_068_689  },
-  { month: 'Mar', income: 28_284_066, expense: 28_284_066 },
-  { month: 'Apr', income: 17_812_343, expense: 17_812_343 },
-  { month: 'May', income: 14_500_000, expense: 9_917_159 },  // Gaji baru Mei 2026
+  { month: 'Jan', income: 0,           expense: 0          },
+  { month: 'Feb', income: 8_000_000,   expense: 8_068_689  },
+  { month: 'Mar', income: 18_805_050,  expense: 28_284_066 },
+  { month: 'Apr', income: 14_093_000,  expense: 17_812_343 },
+  { month: 'May', income: 14_500_000,  expense: 9_917_159  },  // Gaji baru Mei 2026
   { month: 'Jun', income: 0,          expense: 0 },
   { month: 'Jul', income: 0,          expense: 0 },
   { month: 'Aug', income: 0,          expense: 0 },
