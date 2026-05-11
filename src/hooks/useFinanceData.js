@@ -53,12 +53,23 @@ function buildDashboard(transactions) {
   const mo  = now.getMonth() // 0-indexed
   const currentMonthStr = `${yr}-${String(mo + 1).padStart(2, '0')}`
 
+  // Merge manual transactions (big items not synced to Railway) — dedupe by date+desc+amount
+  const liveKeys = new Set(transactions.map(t =>
+    `${t.date}|${(t.description ?? '').trim().toLowerCase()}|${t.amount}`
+  ))
+  const allTransactions = [
+    ...transactions,
+    ...dummy.manualTransactions.filter(m =>
+      !liveKeys.has(`${m.date}|${(m.description ?? '').trim().toLowerCase()}|${m.amount}`)
+    ),
+  ]
+
   // Expense bulan ini
-  const monthExpTx = transactions.filter(
+  const monthExpTx = allTransactions.filter(
     t => t.type === 'expense' && t.date?.startsWith(currentMonthStr)
   )
   const monthlyExpense   = monthExpTx.reduce((s, t) => s + (t.amount || 0), 0)
-  const transactionCount = transactions.filter(t => t.date?.startsWith(currentMonthStr)).length
+  const transactionCount = allTransactions.filter(t => t.date?.startsWith(currentMonthStr)).length
 
   // Income: dari sheet_inc_* (real-time Google Sheets) → fallback dummy
   const sheetIncome  = extractSheetIncome(transactions)
@@ -128,8 +139,10 @@ function buildDashboard(transactions) {
   }
 
   // Transaksi tampilan: expense semua + income hanya yang WhatsApp (UUID, bukan sheet_*)
-  const displayTransactions = transactions
+  // Sort descending dulu agar slice(0,80) selalu ambil yang paling baru
+  const displayTransactions = allTransactions
     .filter(t => t.type === 'expense' || (t.type === 'income' && !/^sheet_/.test(t.id ?? '')))
+    .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
     .slice(0, 80)
 
   return { summary, categories, categoryChart, cashflow, displayTransactions }

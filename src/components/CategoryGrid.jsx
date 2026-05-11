@@ -1,5 +1,22 @@
-import { motion } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
 import { formatRupiah } from '../utils/format'
+
+// Gunakan animate + useInView agar bar width ikut update saat data polling berubah.
+// whileInView+once:true di framer-motion v11 mem-freeze animasi setelah trigger pertama.
+function AnimatedBar({ value, delay, className }) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true })
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ width: 0 }}
+      animate={{ width: isInView ? `${value}%` : 0 }}
+      transition={{ duration: 1.2, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={`absolute inset-y-0 left-0 rounded-full ${className}`}
+    />
+  )
+}
 
 export default function CategoryGrid({ categories }) {
   const grandTotal = categories.reduce((s, c) => s + c.total, 0)
@@ -80,18 +97,16 @@ export default function CategoryGrid({ categories }) {
                     ? 'bg-red-100 dark:bg-red-900/30'
                     : 'bg-finance-100/70 dark:bg-finance-900/50'
                 }`}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${budgetPct}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.2, delay: 0.3 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
-                    className={`absolute inset-y-0 left-0 rounded-full ${
+                  <AnimatedBar
+                    value={budgetPct}
+                    delay={0.3 + i * 0.05}
+                    className={
                       isOver
                         ? 'bg-gradient-to-r from-red-400 to-red-500'
                         : budgetPct > 80
                         ? 'bg-gradient-to-r from-peach-400 to-blush-500'
                         : `bg-gradient-to-r ${cat.color}`
-                    }`}
+                    }
                   />
                 </div>
                 <p className={`text-[9px] number-mono text-right ${
@@ -110,12 +125,10 @@ export default function CategoryGrid({ categories }) {
             ) : (
               <>
                 <div className="relative h-1.5 rounded-full bg-finance-100/70 dark:bg-finance-900/50 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${pct}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.2, delay: 0.3 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
-                    className={`absolute inset-y-0 left-0 bg-gradient-to-r ${cat.color} rounded-full`}
+                  <AnimatedBar
+                    value={pct}
+                    delay={0.3 + i * 0.05}
+                    className={`bg-gradient-to-r ${cat.color}`}
                   />
                 </div>
                 <p className="text-[9px] number-mono text-finance-700/50 dark:text-finance-300/50 mt-1.5 text-right">

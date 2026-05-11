@@ -20,6 +20,7 @@ import FloatingActions from './components/FloatingActions'
 import SmartInsights from './components/SmartInsights'
 import SpendingHeatmap from './components/SpendingHeatmap'
 import PersonBreakdown from './components/PersonBreakdown'
+import DailyBudget from './components/DailyBudget'
 
 export default function App() {
   const { isDark, toggle } = useDarkMode()
@@ -70,6 +71,17 @@ export default function App() {
             subtitle="Ringkasan otomatis dari data keuangan kalian — diperbarui setiap sinkronisasi."
           />
           <SmartInsights summary={summary} categories={categories} />
+        </section>
+
+        {/* DAILY BUDGET */}
+        <section className="pb-10 sm:pb-12">
+          <SectionHeader
+            eyebrow="Today"
+            title="Jatah"
+            italic="Harian"
+            subtitle="Sisa budget dibagi hari yang tersisa — biar nggak boncos sebelum akhir bulan."
+          />
+          <DailyBudget summary={summary} />
         </section>
 
         {/* SAVING GOALS */}

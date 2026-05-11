@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
 import { formatRupiah } from '../utils/format'
 
 const categoryEmoji = {
@@ -6,6 +7,21 @@ const categoryEmoji = {
   'Sedekah': '🤲', 'Entertaint': '🎭', 'Skin Care': '✨',
   'Listrik/Air': '💡', 'Laundry': '👕', 'Lainnya': '📦',
   'Kontrakan': '🏠', 'Orang Tua': '👴', 'Uang Harian': '💰',
+}
+
+function AnimatedBar({ value, color, delay, className = '' }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true })
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ width: 0 }}
+      animate={{ width: inView ? `${Math.min(value, 100)}%` : 0 }}
+      transition={{ duration: 1.4, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={`h-full rounded-full ${className}`}
+      style={color ? { background: color } : undefined}
+    />
+  )
 }
 
 function PersonCard({ name, emoji, data, grandTotal, accentColor, bgClass, index }) {
@@ -24,7 +40,7 @@ function PersonCard({ name, emoji, data, grandTotal, accentColor, bgClass, index
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
-        <div className={`w-13 h-13 w-[52px] h-[52px] rounded-2xl ${bgClass} flex items-center justify-center text-3xl shadow-md shrink-0`}>
+        <div className={`w-[52px] h-[52px] rounded-2xl ${bgClass} flex items-center justify-center text-3xl shadow-md shrink-0`}>
           {emoji}
         </div>
         <div className="flex-1 min-w-0">
@@ -42,14 +58,7 @@ function PersonCard({ name, emoji, data, grandTotal, accentColor, bgClass, index
 
       {/* Share bar */}
       <div className="h-1.5 rounded-full bg-finance-100 dark:bg-finance-900/40 overflow-hidden mb-5">
-        <motion.div
-          initial={{ width: 0 }}
-          whileInView={{ width: `${share}%` }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.4, delay: 0.4 + index * 0.12, ease: [0.22, 1, 0.36, 1] }}
-          className="h-full rounded-full"
-          style={{ background: accentColor }}
-        />
+        <AnimatedBar value={share} color={accentColor} delay={0.4 + index * 0.12} />
       </div>
 
       {/* Top categories */}
@@ -78,13 +87,11 @@ function PersonCard({ name, emoji, data, grandTotal, accentColor, bgClass, index
                   </span>
                 </div>
                 <div className="h-1.5 rounded-full bg-finance-100 dark:bg-finance-900/40 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${pct}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1, delay: 0.7 + index * 0.1 + ci * 0.05 }}
-                    className="h-full rounded-full opacity-75"
-                    style={{ background: accentColor }}
+                  <AnimatedBar
+                    value={pct}
+                    color={accentColor}
+                    delay={0.7 + index * 0.1 + ci * 0.05}
+                    className="opacity-75"
                   />
                 </div>
               </div>
@@ -127,9 +134,9 @@ export default function PersonBreakdown({ transactions }) {
   const grandTotal   = Object.values(personMap).reduce((s, p) => s + p.total, 0)
   if (grandTotal === 0) return null
 
-  const caturData   = personMap['Catur']   || { total: 0, categories: {} }
-  const vermitaData = personMap['Vermita'] || { total: 0, categories: {} }
-  const caturShare  = grandTotal > 0 ? (caturData.total / grandTotal) * 100 : 50
+  const caturData    = personMap['Catur']   || { total: 0, categories: {} }
+  const vermitaData  = personMap['Vermita'] || { total: 0, categories: {} }
+  const caturShare   = grandTotal > 0 ? (caturData.total / grandTotal) * 100 : 50
   const vermitaShare = grandTotal > 0 ? (vermitaData.total / grandTotal) * 100 : 50
 
   return (
@@ -179,21 +186,9 @@ export default function PersonBreakdown({ transactions }) {
         </div>
 
         {/* Split bar */}
-        <div className="flex h-5 rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            whileInView={{ width: `${caturShare}%` }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.5, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="bg-finance-500 h-full"
-          />
-          <motion.div
-            initial={{ width: 0 }}
-            whileInView={{ width: `${vermitaShare}%` }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.5, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="bg-peach-500 h-full"
-          />
+        <div className="flex h-5 rounded-full overflow-hidden bg-finance-100 dark:bg-finance-900/40">
+          <AnimatedBar value={caturShare} color="#10b981" delay={0.6} />
+          <AnimatedBar value={vermitaShare} color="#f97316" delay={0.6} />
         </div>
 
         <div className="flex items-center justify-between mt-2.5">
