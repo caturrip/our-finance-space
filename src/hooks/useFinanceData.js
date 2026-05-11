@@ -172,6 +172,90 @@ export function useFinanceData() {
   const mountedRef = useRef(true)
 
   const load = useCallback(async () => {
+    // ── Tier 1: Google Sheets langsung (jika VITE_SHEETS_URL diset) ──────────
+    const sheetsData = await financeApi.fetchSheets()
+    if (!mountedRef.current) return
+
+    if (sheetsData) {
+      const { transactions: sheetsTx, goals, categories: sheetsCats,
+              monthlyIncome, monthlyExpense, savingProgress,
+              totalSaved, totalTarget } = sheetsData
+
+      // Merge manual transactions (transaksi besar yang mungkin belum di Sheets)
+      const sheetKeys = new Set((sheetsTx || []).map(t =>
+        `${t.date}|${(t.description ?? '').trim().toLowerCase()}|${t.amount}`
+      ))
+      const allTx = [
+        ...(sheetsTx || []),
+        ...dummy.manualTransactions.filter(m =>
+          !sheetKeys.has(`${m.date}|${(m.description ?? '').trim().toLowerCase()}|${m.amount}`)
+        ),
+      ]
+
+      const now  = new Date()
+      const yr   = now.getFullYear()
+      const mo   = now.getMonth()
+      const daysIntoMonth = now.getDate()
+      const daysInMonth   = new Date(yr, mo + 1, 0).getDate()
+      const projectedExpense = daysIntoMonth > 0
+        ? Math.round(monthlyExpense / daysIntoMonth * daysInMonth) : 0
+      const burnRate   = monthlyIncome > 0 ? (monthlyExpense / monthlyIncome) * 100 : 0
+      const netSavings = monthlyIncome - monthlyExpense
+      const prevMoData = mo > 0 ? dummy.monthlyCashflow[mo - 1] : null
+      const deltaExpense = prevMoData?.expense > 0
+        ? ((monthlyExpense - prevMoData.expense) / prevMoData.expense) * 100 : null
+      const deltaIncome = prevMoData?.income > 0
+        ? ((monthlyIncome - prevMoData.income) / prevMoData.income) * 100 : null
+
+      const catMap = {}
+      allTx.filter(t => t.type === 'expense').forEach(t => {
+        const cat = t.category || 'Lainnya'
+        if (!catMap[cat]) catMap[cat] = { name: cat, total: 0, count: 0 }
+        catMap[cat].total += t.amount || 0
+        catMap[cat].count++
+      })
+      const categories = Object.values(catMap).sort((a, b) => b.total - a.total)
+        .map((c, i) => ({ ...c, ...getMeta(c.name, i), budget: dummy.categoryBudgets[c.name] ?? null }))
+      const categoryChart = categories.map((c, i) => ({
+        name: c.name, value: c.total,
+        color: getMeta(c.name, i).chartColor,
+        icon:  getMeta(c.name, i).icon,
+      }))
+      const cashflow = dummy.monthlyCashflow.map((m, i) =>
+        i === mo ? { ...m, income: monthlyIncome, expense: monthlyExpense } : m
+      )
+      const displayTransactions = allTx
+        .filter(t => t.type === 'expense' || (t.type === 'income' && !/^sheet_/.test(t.id ?? '')))
+        .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
+        .slice(0, 80)
+
+      setData({
+        summary: {
+          ...dummy.summary,
+          monthlyIncome, monthlyExpense,
+          transactionCount: allTx.length,
+          activeMonth: MONTH_NAMES_ID[mo], activeYear: yr,
+          daysIntoMonth, daysInMonth, projectedExpense,
+          burnRate, netSavings, deltaExpense, deltaIncome,
+          savingProgress,
+          monthlySavingActual: totalSaved,
+          monthlySavingTarget: totalTarget,
+        },
+        goals:        goals?.length ? goals : dummy.goals,
+        categories,
+        categoryChart,
+        cashflow,
+        transactions: displayTransactions,
+        notes:        dummy.notes,
+        couple:       dummy.couple,
+      })
+      setSource('sheets')
+      setLastSync(new Date())
+      setLoading(false)
+      return
+    }
+
+    // ── Tier 2: Railway API ───────────────────────────────────────────────────
     const [txResult, goalsResult, notesResult, coupleResult] = await Promise.all([
       financeApi.getTransactions(),
       financeApi.getGoals(),
@@ -182,14 +266,19 @@ export function useFinanceData() {
     if (!mountedRef.current) return
 
     const isLive = txResult.source === 'live'
+    const goals  = goalsResult.data
+
+    const totalSaved  = goals.reduce((s, g) => s + (g.current || 0), 0)
+    const totalTarget = goals.reduce((s, g) => s + (g.target  || 0), 0)
+    const savingProgress = totalTarget > 0 ? Math.min(totalSaved / totalTarget, 1) : 0
 
     if (isLive) {
       const { summary, categories, categoryChart, cashflow, displayTransactions } =
         buildDashboard(txResult.data)
 
       setData({
-        summary,
-        goals:        goalsResult.data,
+        summary: { ...summary, savingProgress, monthlySavingActual: totalSaved, monthlySavingTarget: totalTarget },
+        goals,
         categories,
         categoryChart,
         cashflow,
@@ -199,7 +288,19 @@ export function useFinanceData() {
       })
       setSource('live')
     } else {
-      setData(INITIAL_DATA)
+      // ── Tier 3: Demo (dummy data) ─────────────────────────────────────────
+      setData({
+        ...INITIAL_DATA,
+        goals,
+        notes:  notesResult.data,
+        couple: coupleResult.data,
+        summary: {
+          ...INITIAL_DATA.summary,
+          savingProgress,
+          monthlySavingActual: totalSaved,
+          monthlySavingTarget: totalTarget,
+        },
+      })
       setSource('dummy')
     }
 

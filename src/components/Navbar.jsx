@@ -94,7 +94,18 @@ export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh
         <div className="flex items-center gap-2 justify-end">
           {/* Connection indicator + last sync + refresh */}
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/[0.08] dark:border-white/10">
-            {source === 'live' ? (
+            {source === 'sheets' ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                </span>
+                <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Sheets Live</span>
+                {syncLabel && (
+                  <span className="text-[10px] text-blue-600/60 dark:text-blue-400/60">· {syncLabel}</span>
+                )}
+              </>
+            ) : source === 'live' ? (
               <>
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-finance-400 opacity-75" />
@@ -102,9 +113,7 @@ export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh
                 </span>
                 <span className="text-xs font-medium text-finance-700 dark:text-finance-300">Live</span>
                 {syncLabel && (
-                  <span className="text-[10px] text-finance-600/60 dark:text-finance-400/60">
-                    · {syncLabel}
-                  </span>
+                  <span className="text-[10px] text-finance-600/60 dark:text-finance-400/60">· {syncLabel}</span>
                 )}
               </>
             ) : (

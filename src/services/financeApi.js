@@ -1,8 +1,9 @@
 import axios from 'axios'
 import * as dummy from '../data/dummyData'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-const API_TOKEN    = import.meta.env.VITE_API_TOKEN    || ''
+const API_BASE_URL  = import.meta.env.VITE_API_BASE_URL  || ''
+const API_TOKEN     = import.meta.env.VITE_API_TOKEN     || ''
+const SHEETS_URL    = import.meta.env.VITE_SHEETS_URL    || '' // Google Apps Script URL
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -16,26 +17,34 @@ async function safeFetch(endpoint, fallback) {
     const { data } = await api.get(endpoint)
     return { data, source: 'live' }
   } catch (err) {
-    console.warn(`[finance-api] ${endpoint} failed, using dummy:`, err.message)
+    console.warn(`[finance-api] ${endpoint} failed:`, err.message)
     return { data: fallback, source: 'dummy' }
   }
 }
 
+/** Fetch dari Google Apps Script (direct Sheets access). */
+async function fetchSheets() {
+  if (!SHEETS_URL) return null
+  try {
+    const { data } = await axios.get(SHEETS_URL, { timeout: 10000 })
+    if (data?.source === 'sheets') return data
+    return null
+  } catch (err) {
+    console.warn('[sheets] fetch failed:', err.message)
+    return null
+  }
+}
+
 export const financeApi = {
+  fetchSheets,
+
   // Transactions — endpoint Railway aktif, fetch semua untuk komputasi client-side
   getTransactions: () => safeFetch('/transactions?limit=1000', dummy.recentTransactions),
 
-  // Goals & Notes: Railway returns fake/demo data → always use local dummy
-  getGoals:  () => Promise.resolve({ data: dummy.goals,  source: 'dummy' }),
-  getNotes:  () => Promise.resolve({ data: dummy.notes,  source: 'dummy' }),
+  // Goals, Notes, Couple — semua dari Railway (live dari Google Sheets via bot)
+  getGoals:  () => safeFetch('/goals',  dummy.goals),
+  getNotes:  () => safeFetch('/notes',  dummy.notes),
   getCouple: () => safeFetch('/couple', dummy.couple),
-
-  // Tidak ada endpoint Railway — dihitung dari transactions di useFinanceData
-  getSummary:       () => Promise.resolve({ data: dummy.summary,           source: 'dummy' }),
-  getCategories:    () => Promise.resolve({ data: dummy.expenseCategories, source: 'dummy' }),
-  getCategoryChart: () => Promise.resolve({ data: dummy.expenseByCategory, source: 'dummy' }),
-  getCashflow:      () => Promise.resolve({ data: dummy.monthlyCashflow,   source: 'dummy' }),
-  getAccounts:      () => Promise.resolve({ data: dummy.accountBreakdown,  source: 'dummy' }),
 }
 
 export default financeApi
