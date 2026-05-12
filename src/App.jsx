@@ -9,7 +9,6 @@ import Hero from './components/Hero'
 import SectionHeader from './components/SectionHeader'
 import SummaryCards from './components/SummaryCards'
 import BalanceDetail from './components/BalanceDetail'
-import SavingGoals from './components/SavingGoals'
 import Charts from './components/Charts'
 import WhatsAppMockup from './components/WhatsAppMockup'
 import RecentTransactions from './components/RecentTransactions'
@@ -21,11 +20,13 @@ import SmartInsights from './components/SmartInsights'
 import SpendingHeatmap from './components/SpendingHeatmap'
 import PersonBreakdown from './components/PersonBreakdown'
 import DailyBudget from './components/DailyBudget'
+import FinancialHealthScore from './components/FinancialHealthScore'
+import QuickKPIs from './components/QuickKPIs'
 
 export default function App() {
   const { isDark, toggle } = useDarkMode()
   const {
-    summary, goals, categories, categoryChart, cashflow,
+    summary, categories, categoryChart, cashflow,
     transactions, notes, couple, source, loading, lastSync, refresh,
   } = useFinanceData()
 
@@ -36,7 +37,7 @@ export default function App() {
   return (
     <div className="relative min-h-screen text-finance-950 dark:text-finance-50 noise">
       <Background />
-      <Navbar isDark={isDark} toggleDark={toggle} source={source} lastSync={lastSync} onRefresh={refresh} />
+      <Navbar isDark={isDark} toggleDark={toggle} source={source} lastSync={lastSync} onRefresh={refresh} burnRate={summary?.burnRate} />
 
       {/* HERO */}
       <Hero couple={couple} summary={summary} />
@@ -57,9 +58,31 @@ export default function App() {
           {/* BALANCE DETAIL — muncul saat Total Balance diklik */}
           <AnimatePresence>
             {showBalance && (
-              <BalanceDetail summary={summary} onClose={() => setShowBalance(false)} />
+              <BalanceDetail summary={summary} onClose={() => setShowBalance(false)} cashflow={cashflow} />
             )}
           </AnimatePresence>
+        </section>
+
+        {/* QUICK KPIS */}
+        <section className="pb-8 sm:pb-10">
+          <SectionHeader
+            eyebrow="Quick View"
+            title="Stats"
+            italic="Kilat"
+            subtitle="Ringkasan cepat — semua yang penting dalam satu scrollan."
+          />
+          <QuickKPIs transactions={transactions} summary={summary} />
+        </section>
+
+        {/* FINANCIAL HEALTH SCORE */}
+        <section className="pb-10 sm:pb-12">
+          <SectionHeader
+            eyebrow="Score"
+            title="Financial"
+            italic="Health"
+            subtitle="Skor kesehatan keuangan kalian — dihitung dari burn rate, budget, dan net savings."
+          />
+          <FinancialHealthScore summary={summary} categories={categories} />
         </section>
 
         {/* SMART INSIGHTS */}
@@ -82,17 +105,6 @@ export default function App() {
             subtitle="Sisa budget dibagi hari yang tersisa — biar nggak boncos sebelum akhir bulan."
           />
           <DailyBudget summary={summary} />
-        </section>
-
-        {/* SAVING GOALS */}
-        <section id="goals" className="py-12 sm:py-16 scroll-mt-20">
-          <SectionHeader
-            eyebrow="Together"
-            title="Saving"
-            italic="Together"
-            subtitle="Setiap rupiah membawa kita lebih dekat ke masa depan yang kita impikan bersama."
-          />
-          <SavingGoals goals={goals} />
         </section>
 
         {/* CHARTS */}

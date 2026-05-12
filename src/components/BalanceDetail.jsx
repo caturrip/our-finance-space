@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import CountUp from 'react-countup'
 import { X, TrendingUp, TrendingDown } from 'lucide-react'
 import { formatRupiah } from '../utils/format'
-import { accountBreakdown, monthlyCashflow } from '../data/dummyData'
+import { accountBreakdown } from '../data/dummyData'
 
 function AccountCard({ account, index }) {
   return (
@@ -79,8 +79,8 @@ function MonthFlowBar({ month, income, expense, maxVal, index }) {
   )
 }
 
-export default function BalanceDetail({ summary, onClose }) {
-  const activeMonths = monthlyCashflow.filter(m => m.income > 0 || m.expense > 0)
+export default function BalanceDetail({ summary, onClose, cashflow = [] }) {
+  const activeMonths = cashflow.filter(m => m.income > 0 || m.expense > 0)
   const maxVal = activeMonths.length > 0
     ? Math.max(...activeMonths.map(m => Math.max(m.income, m.expense)))
     : 1

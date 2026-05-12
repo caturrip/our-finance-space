@@ -1,6 +1,84 @@
-import { motion } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
 import CountUp from 'react-countup'
 import { formatRupiah } from '../utils/format'
+
+function CombinedProgress({ goals }) {
+  const totalSaved  = goals.reduce((s, g) => s + g.current, 0)
+  const totalTarget = goals.reduce((s, g) => s + g.target, 0)
+  const pct = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true })
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="glass-card rounded-2xl px-6 py-5 mb-5"
+    >
+      <div className="flex items-center justify-between mb-3 gap-4 flex-wrap">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-finance-700/60 dark:text-finance-300/60 mb-0.5">
+            Total Semua Goals
+          </p>
+          <div className="flex items-baseline gap-2">
+            <p className="number-mono text-2xl font-bold text-finance-950 dark:text-finance-50">
+              <span className="text-finance-700/60 dark:text-finance-300/60 text-sm mr-0.5">Rp</span>
+              <CountUp end={totalSaved} duration={2} separator="." enableScrollSpy scrollSpyOnce />
+            </p>
+            <p className="text-xs text-finance-700/60 dark:text-finance-300/60 number-mono">
+              / {formatRupiah(totalTarget, { compact: true })}
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="number-mono text-3xl font-black text-finance-600 dark:text-finance-400">
+            <CountUp end={pct} decimals={1} duration={2} enableScrollSpy scrollSpyOnce />
+            <span className="text-base font-semibold opacity-70">%</span>
+          </p>
+          <p className="text-[10px] text-finance-700/55 dark:text-finance-300/55">
+            overall progress
+          </p>
+        </div>
+      </div>
+
+      {/* Segmented bar — one segment per goal */}
+      <div ref={ref} className="h-3 rounded-full bg-finance-100/70 dark:bg-finance-900/40 overflow-hidden flex gap-0.5">
+        {goals.map((g, i) => {
+          const segPct = totalTarget > 0 ? (g.current / totalTarget) * 100 : 0
+          return (
+            <motion.div
+              key={g.id}
+              initial={{ width: 0 }}
+              animate={{ width: inView ? `${segPct}%` : 0 }}
+              transition={{ duration: 1.5, delay: 0.3 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+              className={`h-full rounded-full bg-gradient-to-r ${g.color} relative overflow-hidden shrink-0`}
+            >
+              {segPct > 0 && (
+                <motion.div
+                  animate={{ x: ['-100%', '200%'] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: 'linear', delay: 1 + i * 0.3 }}
+                  className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                />
+              )}
+            </motion.div>
+          )
+        })}
+      </div>
+
+      <div className="flex items-center gap-4 mt-2.5 flex-wrap">
+        {goals.map(g => (
+          <div key={g.id} className="flex items-center gap-1.5">
+            <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${g.color}`} />
+            <span className="text-[10px] text-finance-700/60 dark:text-finance-300/60">{g.name}</span>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
 
 function GoalCard({ goal, index }) {
   const progress = (goal.current / goal.target) * 100
@@ -134,6 +212,7 @@ export default function SavingGoals({ goals }) {
 
   return (
     <div className="space-y-6">
+      <CombinedProgress goals={goals} />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
         {goals.map((goal, i) => (
           <GoalCard key={goal.id} goal={goal} index={i} />

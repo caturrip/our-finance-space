@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { Sun, Moon, RefreshCw } from 'lucide-react'
 
 const navLinks = [
-  { label: 'Goals', href: '#goals' },
   { label: 'Charts', href: '#charts' },
   { label: 'Transaksi', href: '#transactions' },
   { label: 'Kategori', href: '#categories' },
@@ -33,7 +32,7 @@ function useRelativeTime(date) {
   return label
 }
 
-export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh }) {
+export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh, burnRate }) {
   const [spinning, setSpinning] = useState(false)
   const syncLabel = useRelativeTime(lastSync)
 
@@ -51,7 +50,24 @@ export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh
       transition={{ duration: 0.6, delay: 0.1 }}
       className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl"
     >
-      <div className="glass-strong rounded-2xl px-4 sm:px-6 py-3 grid grid-cols-[1fr_auto_1fr] md:grid-cols-[auto_1fr_auto] items-center gap-2">
+      <div className="glass-strong rounded-2xl px-4 sm:px-6 py-3 grid grid-cols-[1fr_auto_1fr] md:grid-cols-[auto_1fr_auto] items-center gap-2 relative overflow-hidden">
+        {/* Spending progress bar — bottom edge */}
+        {burnRate != null && burnRate > 0 && (
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 1.4, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute bottom-0 left-0 right-0 h-[2.5px] origin-left pointer-events-none"
+            style={{
+              background: burnRate > 90
+                ? 'linear-gradient(90deg, #ef4444, #f87171)'
+                : burnRate > 70
+                ? 'linear-gradient(90deg, #f97316, #fbbf24)'
+                : 'linear-gradient(90deg, #10b981, #34d399)',
+              width: `${Math.min(burnRate, 100)}%`,
+            }}
+          />
+        )}
         {/* Logo */}
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -116,10 +132,15 @@ export default function Navbar({ isDark, toggleDark, source, lastSync, onRefresh
                   <span className="text-[10px] text-finance-600/60 dark:text-finance-400/60">· {syncLabel}</span>
                 )}
               </>
+            ) : source === 'loading' ? (
+              <>
+                <div className="h-2 w-2 rounded-full bg-finance-400/60 animate-pulse" />
+                <span className="text-xs font-medium text-finance-600/70 dark:text-finance-400/70">Connecting…</span>
+              </>
             ) : (
               <>
-                <div className="h-2 w-2 rounded-full bg-peach-400" />
-                <span className="text-xs font-medium text-peach-700 dark:text-peach-300">Demo Mode</span>
+                <div className="h-2 w-2 rounded-full bg-red-400" />
+                <span className="text-xs font-medium text-red-600 dark:text-red-400">Offline</span>
               </>
             )}
 

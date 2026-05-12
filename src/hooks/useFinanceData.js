@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import financeApi from '../services/financeApi'
-import * as dummy from '../data/dummyData'
+import { couple, categoryBudgets, accountBreakdown, manualTransactions, monthlyCashflow } from '../data/dummyData'
 
 const MONTH_NAMES_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 
@@ -18,7 +18,7 @@ const CATEGORY_META = {
   'Laundry':           { icon: '👕', color: 'from-blush-300 to-finance-300',   chartColor: '#93c5fd' },
   'Uang Harian':       { icon: '💵', color: 'from-finance-100 to-finance-300', chartColor: '#4ade80' },
 }
-const FALLBACK_COLORS = ['#10b981','#f97316','#6366f1','#fbbf24','#60a5fa','#a78bfa','#f08672','#34d399']
+const FALLBACK_COLORS = ['#10b981', '#f97316', '#6366f1', '#fbbf24', '#60a5fa', '#a78bfa', '#f08672', '#34d399']
 
 function getMeta(catName, idx) {
   return CATEGORY_META[catName] || {
@@ -29,16 +29,15 @@ function getMeta(catName, idx) {
 }
 
 /**
- * Ambil income dari sheet_inc_* records Railway.
- * Backend sering ikut-ikutkan baris total dari bulan lain → filter:
- * - Amount harus dalam range gaji wajar (10jt – 25jt gabungan)
- * - Ambil row number tertinggi (record paling baru di spreadsheet)
- * Fallback ke dummy.summary.monthlyIncome jika tidak ada yang lolos filter.
+ * Ambil income bulan ini dari sheet_inc_* records Railway.
+ * Railway mengirim SEMUA income historis dengan tanggal hari ini —
+ * kita ambil yang row-number tertinggi (= entry paling baru = income bulan ini).
+ * Filter: amount harus dalam range gaji wajar (7jt – 25jt).
  */
 function extractSheetIncome(transactions) {
   const candidates = transactions
     .filter(t => t.type === 'income' && /^sheet_inc_\d+$/.test(t.id ?? ''))
-    .filter(t => t.amount >= 10_000_000 && t.amount <= 25_000_000)
+    .filter(t => t.amount >= 7_000_000 && t.amount <= 25_000_000)
     .sort((a, b) => {
       const rowA = parseInt(a.id.replace('sheet_inc_', ''))
       const rowB = parseInt(b.id.replace('sheet_inc_', ''))
@@ -47,35 +46,60 @@ function extractSheetIncome(transactions) {
   return candidates[0]?.amount ?? null
 }
 
-function buildDashboard(transactions) {
-  const now = new Date()
-  const yr  = now.getFullYear()
-  const mo  = now.getMonth() // 0-indexed
-  const currentMonthStr = `${yr}-${String(mo + 1).padStart(2, '0')}`
-
-  // Merge manual transactions (big items not synced to Railway) — dedupe by date+desc+amount
-  const liveKeys = new Set(transactions.map(t =>
+/**
+ * Merge Railway transactions dengan manualTransactions dari config.
+ * Dedupe berdasarkan date|description|amount untuk hindari duplikasi.
+ */
+function mergeWithManual(railwayTx) {
+  const liveKeys = new Set(railwayTx.map(t =>
     `${t.date}|${(t.description ?? '').trim().toLowerCase()}|${t.amount}`
   ))
-  const allTransactions = [
-    ...transactions,
-    ...dummy.manualTransactions.filter(m =>
+  return [
+    ...railwayTx,
+    ...manualTransactions.filter(m =>
       !liveKeys.has(`${m.date}|${(m.description ?? '').trim().toLowerCase()}|${m.amount}`)
     ),
   ]
+}
 
-  // Expense bulan ini
+/**
+ * Buat cashflow 12 bulan:
+ * - Bulan historis: dari config monthlyCashflow (data nyata spreadsheet)
+ * - Bulan sekarang: override income & expense dari Railway + manual
+ */
+function buildCashflow(mo, currentMonthIncome, currentMonthExpense) {
+  return monthlyCashflow.map((m, i) =>
+    i === mo
+      ? { ...m, income: currentMonthIncome, expense: currentMonthExpense }
+      : m
+  )
+}
+
+/** Total saldo dari konfigurasi rekening. */
+const TOTAL_BALANCE = accountBreakdown.reduce((s, a) => s + a.balance, 0)
+
+function buildDashboard(railwayTx) {
+  const now = new Date()
+  const yr  = now.getFullYear()
+  const mo  = now.getMonth()
+  const currentMonthStr = `${yr}-${String(mo + 1).padStart(2, '0')}`
+
+  // Merge Railway + manual transactions (transaksi spreadsheet yang tidak lewat bot)
+  const allTransactions = mergeWithManual(railwayTx)
+
+  // Expense bulan ini (Railway + manual)
   const monthExpTx = allTransactions.filter(
     t => t.type === 'expense' && t.date?.startsWith(currentMonthStr)
   )
   const monthlyExpense   = monthExpTx.reduce((s, t) => s + (t.amount || 0), 0)
   const transactionCount = allTransactions.filter(t => t.date?.startsWith(currentMonthStr)).length
 
-  // Income: dari sheet_inc_* (real-time Google Sheets) → fallback dummy
-  const sheetIncome  = extractSheetIncome(transactions)
-  const monthlyIncome = sheetIncome ?? dummy.summary.monthlyIncome
+  // Income bulan ini — ambil dari sheet_inc_* dengan row tertinggi
+  // (Railway mengirim semua income historis dengan tanggal hari ini → TIDAK bisa dijumlah)
+  const sheetIncome  = extractSheetIncome(railwayTx)
+  const monthlyIncome = sheetIncome ?? 0
 
-  // Kategori
+  // Kategori bulan ini
   const catMap = {}
   for (const t of monthExpTx) {
     const cat = t.category || 'Lainnya'
@@ -85,11 +109,7 @@ function buildDashboard(transactions) {
   }
   const categories = Object.values(catMap)
     .sort((a, b) => b.total - a.total)
-    .map((c, i) => ({
-      ...c,
-      ...getMeta(c.name, i),
-      budget: dummy.categoryBudgets[c.name] ?? null,
-    }))
+    .map((c, i) => ({ ...c, ...getMeta(c.name, i), budget: categoryBudgets[c.name] ?? null }))
 
   const categoryChart = categories.map((c, i) => ({
     name: c.name, value: c.total,
@@ -97,38 +117,34 @@ function buildDashboard(transactions) {
     icon: getMeta(c.name, i).icon,
   }))
 
-  // Cashflow: bulan lalu pakai dummy (data historis sudah benar),
-  // bulan ini override dengan data live dari Railway
-  const cashflow = dummy.monthlyCashflow.map((m, i) =>
-    i === mo ? { ...m, income: monthlyIncome, expense: monthlyExpense } : m
-  )
+  // Cashflow: historis dari config, bulan ini dari Railway+manual
+  const cashflow = buildCashflow(mo, monthlyIncome, monthlyExpense)
 
   // Burn rate & proyeksi
   const daysIntoMonth = now.getDate()
   const daysInMonth   = new Date(yr, mo + 1, 0).getDate()
   const projectedExpense = daysIntoMonth > 0
-    ? Math.round(monthlyExpense / daysIntoMonth * daysInMonth)
-    : 0
+    ? Math.round(monthlyExpense / daysIntoMonth * daysInMonth) : 0
   const burnRate   = monthlyIncome > 0 ? (monthlyExpense / monthlyIncome) * 100 : 0
   const netSavings = monthlyIncome - monthlyExpense
 
-  // Delta vs bulan lalu (dari cashflow historis)
-  const prevMoData = mo > 0 ? dummy.monthlyCashflow[mo - 1] : null
-  const deltaExpense = prevMoData?.expense > 0
-    ? ((monthlyExpense - prevMoData.expense) / prevMoData.expense) * 100
-    : null
-  const deltaIncome = prevMoData?.income > 0
-    ? ((monthlyIncome - prevMoData.income) / prevMoData.income) * 100
-    : null
+  // Delta vs bulan lalu (dari cashflow historis config)
+  const prevMo = mo > 0 ? monthlyCashflow[mo - 1] : null
+  const deltaExpense = prevMo?.expense > 0
+    ? ((monthlyExpense - prevMo.expense) / prevMo.expense) * 100 : null
+  const deltaIncome = prevMo?.income > 0
+    ? ((monthlyIncome - prevMo.income) / prevMo.income) * 100 : null
 
-  // Summary
   const summary = {
-    ...dummy.summary,
+    totalBalance: TOTAL_BALANCE,
     monthlyIncome,
     monthlyExpense,
     transactionCount,
+    savingProgress: 0,
+    monthlySavingActual: 0,
+    monthlySavingTarget: 0,
     activeMonth: MONTH_NAMES_ID[mo],
-    activeYear:  yr,
+    activeYear: yr,
     daysIntoMonth,
     daysInMonth,
     projectedExpense,
@@ -138,36 +154,53 @@ function buildDashboard(transactions) {
     deltaIncome,
   }
 
-  // Transaksi tampilan: expense semua + income hanya yang WhatsApp (UUID, bukan sheet_*)
-  // Sort descending dulu agar slice(0,80) selalu ambil yang paling baru
+  // Tampilkan expense + income WA (bukan sheet_inc_*)
   const displayTransactions = allTransactions
     .filter(t => t.type === 'expense' || (t.type === 'income' && !/^sheet_/.test(t.id ?? '')))
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
-    .slice(0, 80)
+    .slice(0, 100)
 
   return { summary, categories, categoryChart, cashflow, displayTransactions }
 }
 
-const INITIAL_DATA = {
-  summary:       dummy.summary,
-  goals:         dummy.goals,
-  categories:    dummy.expenseCategories.map(c => ({
-    ...c,
-    budget: dummy.categoryBudgets[c.name] ?? null,
-  })),
-  categoryChart: dummy.expenseByCategory,
-  cashflow:      dummy.monthlyCashflow,
-  transactions:  dummy.recentTransactions,
-  notes:         dummy.notes,
-  couple:        dummy.couple,
+/** State awal — menunggu Railway, tampilkan angka 0 bukan dummy. */
+function makeEmptyState() {
+  const mo = new Date().getMonth()
+  return {
+    summary: {
+      totalBalance: TOTAL_BALANCE,
+      monthlyIncome: 0,
+      monthlyExpense: 0,
+      transactionCount: 0,
+      savingProgress: 0,
+      monthlySavingActual: 0,
+      monthlySavingTarget: 0,
+      activeMonth: MONTH_NAMES_ID[mo],
+      activeYear: new Date().getFullYear(),
+      daysIntoMonth: new Date().getDate(),
+      daysInMonth: new Date(new Date().getFullYear(), mo + 1, 0).getDate(),
+      projectedExpense: 0,
+      burnRate: 0,
+      netSavings: 0,
+      deltaExpense: null,
+      deltaIncome: null,
+    },
+    goals:        [],
+    categories:   [],
+    categoryChart: [],
+    cashflow:     monthlyCashflow, // tampilkan historis saat loading
+    transactions: [],
+    notes:        [],
+    couple,
+  }
 }
 
-const POLL_INTERVAL = 30 * 1000 // 30 detik
+const POLL_INTERVAL = 30 * 1000
 
 export function useFinanceData() {
-  const [data, setData]       = useState(INITIAL_DATA)
-  const [loading, setLoading] = useState(true)
-  const [source, setSource]   = useState('dummy')
+  const [data, setData]         = useState(makeEmptyState)
+  const [loading, setLoading]   = useState(true)
+  const [source, setSource]     = useState('loading')
   const [lastSync, setLastSync] = useState(null)
   const mountedRef = useRef(true)
 
@@ -177,77 +210,72 @@ export function useFinanceData() {
     if (!mountedRef.current) return
 
     if (sheetsData) {
-      const { transactions: sheetsTx, goals, categories: sheetsCats,
-              monthlyIncome, monthlyExpense, savingProgress,
-              totalSaved, totalTarget } = sheetsData
-
-      // Merge manual transactions (transaksi besar yang mungkin belum di Sheets)
-      const sheetKeys = new Set((sheetsTx || []).map(t =>
-        `${t.date}|${(t.description ?? '').trim().toLowerCase()}|${t.amount}`
-      ))
-      const allTx = [
-        ...(sheetsTx || []),
-        ...dummy.manualTransactions.filter(m =>
-          !sheetKeys.has(`${m.date}|${(m.description ?? '').trim().toLowerCase()}|${m.amount}`)
-        ),
-      ]
+      const {
+        transactions: sheetsTx = [],
+        goals: sheetsGoals = [],
+        monthlyIncome = 0,
+        monthlyExpense = 0,
+        savingProgress = 0,
+        totalSaved = 0,
+        totalTarget = 0,
+      } = sheetsData
 
       const now  = new Date()
       const yr   = now.getFullYear()
       const mo   = now.getMonth()
+      const currentMonthStr = `${yr}-${String(mo + 1).padStart(2, '0')}`
       const daysIntoMonth = now.getDate()
       const daysInMonth   = new Date(yr, mo + 1, 0).getDate()
       const projectedExpense = daysIntoMonth > 0
         ? Math.round(monthlyExpense / daysIntoMonth * daysInMonth) : 0
-      const burnRate   = monthlyIncome > 0 ? (monthlyExpense / monthlyIncome) * 100 : 0
-      const netSavings = monthlyIncome - monthlyExpense
-      const prevMoData = mo > 0 ? dummy.monthlyCashflow[mo - 1] : null
-      const deltaExpense = prevMoData?.expense > 0
-        ? ((monthlyExpense - prevMoData.expense) / prevMoData.expense) * 100 : null
-      const deltaIncome = prevMoData?.income > 0
-        ? ((monthlyIncome - prevMoData.income) / prevMoData.income) * 100 : null
+      const burnRate    = monthlyIncome > 0 ? (monthlyExpense / monthlyIncome) * 100 : 0
+      const netSavings  = monthlyIncome - monthlyExpense
+      const cashflow    = buildCashflow(mo, monthlyIncome, monthlyExpense)
+      const prevMo      = mo > 0 ? monthlyCashflow[mo - 1] : null
+      const deltaExpense = prevMo?.expense > 0
+        ? ((monthlyExpense - prevMo.expense) / prevMo.expense) * 100 : null
+      const deltaIncome = prevMo?.income > 0
+        ? ((monthlyIncome - prevMo.income) / prevMo.income) * 100 : null
 
+      // Kategori dari Sheets
       const catMap = {}
-      allTx.filter(t => t.type === 'expense').forEach(t => {
-        const cat = t.category || 'Lainnya'
-        if (!catMap[cat]) catMap[cat] = { name: cat, total: 0, count: 0 }
-        catMap[cat].total += t.amount || 0
-        catMap[cat].count++
-      })
+      sheetsTx.filter(t => t.type === 'expense' && t.date?.startsWith(currentMonthStr))
+        .forEach(t => {
+          const cat = t.category || 'Lainnya'
+          if (!catMap[cat]) catMap[cat] = { name: cat, total: 0, count: 0 }
+          catMap[cat].total += t.amount || 0
+          catMap[cat].count++
+        })
       const categories = Object.values(catMap).sort((a, b) => b.total - a.total)
-        .map((c, i) => ({ ...c, ...getMeta(c.name, i), budget: dummy.categoryBudgets[c.name] ?? null }))
+        .map((c, i) => ({ ...c, ...getMeta(c.name, i), budget: categoryBudgets[c.name] ?? null }))
       const categoryChart = categories.map((c, i) => ({
         name: c.name, value: c.total,
         color: getMeta(c.name, i).chartColor,
-        icon:  getMeta(c.name, i).icon,
+        icon: getMeta(c.name, i).icon,
       }))
-      const cashflow = dummy.monthlyCashflow.map((m, i) =>
-        i === mo ? { ...m, income: monthlyIncome, expense: monthlyExpense } : m
-      )
-      const displayTransactions = allTx
+
+      const displayTransactions = [...sheetsTx]
         .filter(t => t.type === 'expense' || (t.type === 'income' && !/^sheet_/.test(t.id ?? '')))
         .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
-        .slice(0, 80)
+        .slice(0, 100)
 
       setData({
         summary: {
-          ...dummy.summary,
+          totalBalance: TOTAL_BALANCE,
           monthlyIncome, monthlyExpense,
-          transactionCount: allTx.length,
+          transactionCount: sheetsTx.length,
+          savingProgress, monthlySavingActual: totalSaved, monthlySavingTarget: totalTarget,
           activeMonth: MONTH_NAMES_ID[mo], activeYear: yr,
           daysIntoMonth, daysInMonth, projectedExpense,
           burnRate, netSavings, deltaExpense, deltaIncome,
-          savingProgress,
-          monthlySavingActual: totalSaved,
-          monthlySavingTarget: totalTarget,
         },
-        goals:        goals?.length ? goals : dummy.goals,
+        goals:        sheetsGoals.length ? sheetsGoals : [],
         categories,
         categoryChart,
         cashflow,
         transactions: displayTransactions,
-        notes:        dummy.notes,
-        couple:       dummy.couple,
+        notes:        [],
+        couple,
       })
       setSource('sheets')
       setLastSync(new Date())
@@ -262,17 +290,18 @@ export function useFinanceData() {
       financeApi.getNotes(),
       financeApi.getCouple(),
     ])
-
     if (!mountedRef.current) return
 
-    const isLive = txResult.source === 'live'
-    const goals  = goalsResult.data
+    const isLive     = txResult.source === 'live'
+    const goals      = Array.isArray(goalsResult.data)  ? goalsResult.data  : []
+    const notes      = Array.isArray(notesResult.data)  ? notesResult.data  : []
+    const coupleData = coupleResult.data || couple
 
-    const totalSaved  = goals.reduce((s, g) => s + (g.current || 0), 0)
-    const totalTarget = goals.reduce((s, g) => s + (g.target  || 0), 0)
+    const totalSaved    = goals.reduce((s, g) => s + (g.current || 0), 0)
+    const totalTarget   = goals.reduce((s, g) => s + (g.target  || 0), 0)
     const savingProgress = totalTarget > 0 ? Math.min(totalSaved / totalTarget, 1) : 0
 
-    if (isLive) {
+    if (isLive && Array.isArray(txResult.data)) {
       const { summary, categories, categoryChart, cashflow, displayTransactions } =
         buildDashboard(txResult.data)
 
@@ -283,25 +312,15 @@ export function useFinanceData() {
         categoryChart,
         cashflow,
         transactions: displayTransactions,
-        notes:        notesResult.data,
-        couple:       coupleResult.data,
+        notes,
+        couple: coupleData,
       })
       setSource('live')
     } else {
-      // ── Tier 3: Demo (dummy data) ─────────────────────────────────────────
-      setData({
-        ...INITIAL_DATA,
-        goals,
-        notes:  notesResult.data,
-        couple: coupleResult.data,
-        summary: {
-          ...INITIAL_DATA.summary,
-          savingProgress,
-          monthlySavingActual: totalSaved,
-          monthlySavingTarget: totalTarget,
-        },
-      })
-      setSource('dummy')
+      // Railway down — tampilkan state kosong + historis cashflow
+      const empty = makeEmptyState()
+      setData({ ...empty, goals, notes, couple: coupleData })
+      setSource('disconnected')
     }
 
     setLastSync(new Date())
@@ -312,17 +331,12 @@ export function useFinanceData() {
     mountedRef.current = true
     load()
     const interval = setInterval(load, POLL_INTERVAL)
-
-    // Refresh saat tab aktif kembali (misal: user buka tab setelah kirim WA)
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') load()
-    }
-    document.addEventListener('visibilitychange', onVisibilityChange)
-
+    const onFocus = () => { if (document.visibilityState === 'visible') load() }
+    document.addEventListener('visibilitychange', onFocus)
     return () => {
       mountedRef.current = false
       clearInterval(interval)
-      document.removeEventListener('visibilitychange', onVisibilityChange)
+      document.removeEventListener('visibilitychange', onFocus)
     }
   }, [load])
 
