@@ -22,7 +22,13 @@
       "Bash(curl *)",
       "Bash(git push *)",
       "Bash(git commit *)",
-      "Bash(vercel *)"
+      "Bash(vercel *)",
+      "Bash(npx vercel *)",
+      "Bash(findstr \"framer-motion\" package.json)",
+      "WebFetch(domain:wa-finance-bot-production.up.railway.app)",
+      "Bash(grep -o \".\\\\{0,200\\\\}STATUS.\\\\{0,10\\\\}TANGGAL.\\\\{0,200\\\\}\" \"C:\\\\Users\\\\midas\\\\.claude\\\\projects\\\\C--Users-midas-Downloads-our-finance-space-our-finance-space\\\\bead67f4-cfae-4658-bdb9-1050b1e79de8\\\\tool-results\\\\mcp-claude_ai_Google_Drive-read_file_content-1778663942033.txt\")",
+      "Bash(dir /b)",
+      "Bash(npm install *)"
     ]
   }
 }
